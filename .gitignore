@@ -1,0 +1,142 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+
+# Flutter Generated Files
+**/flutter_*.png
+linked_*.ds
+unlinked.ds
+unlinked_spec.ds
+app.*.symbols
+app.*.map.json
+
+# Dart Generated Files
+*.freezed.dart
+# Keep *.g.dart tracked if generated code is committed
+
+# Android / Gradle
+.gradle/
+**/android/.gradle/
+**/android/captures/
+**/android/.cxx/
+**/android/.externalNativeBuild/
+**/android/local.properties
+**/android/key.properties
+**/android/keystore.properties
+**/android/.kotlin/
+**/android/**/build/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.hprof
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# iOS / Xcode
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+*.xcuserstate
+*.xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# macOS Flutter
+**/macos/Pods/
+**/macos/Flutter/ephemeral/
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Windows / Linux Flutter
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+
+# Signing Keys / Certificates
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+*.mobileprovision
+*.cer
+*.p8
+key.properties
+keystore.properties
+signing.properties
+
+# Secrets / Environment Variables
+.env
+.env.*
+!.env.example
+*.secret
+secrets.properties
+secrets.json
+credentials.json
+service-account*.json
+firebase-adminsdk*.json
+
+# Logs / Temporary Files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*.orig
+*.rej
+tmp/
+temp/
+
+# Operating System
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+*~
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Firebase
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# Claude Code / Local AI Tools
+.claude/settings.local.json
+.graphify-out/

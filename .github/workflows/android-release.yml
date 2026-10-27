@@ -1,5 +1,5 @@
 
-name: Android Internal Release
+name: Android Production Release
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   release:
-    name: Deploy to Google Play Internal Testing
+    name: Deploy to Google Play Production
     runs-on: ubuntu-latest
     environment: production
 
@@ -50,18 +50,31 @@ jobs:
             echo "keyPassword=$KEY_PASSWORD"
           } > android/key.properties
 
+      - name: Derive version from the tag
+        id: version
+        # versionName = the tag without its leading "v" (v1.2.3 -> 1.2.3).
+        # versionCode = the monotonic GitHub run number, so it always increases.
+        # Nothing is read from pubspec.yaml -- to release, you only push a tag;
+        # you never edit the version in the repo.
+        run: |
+          echo "name=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          echo "code=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "Releasing versionName=${GITHUB_REF_NAME#v} versionCode=${GITHUB_RUN_NUMBER}"
+
       - name: Build signed AAB
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
           flutter build appbundle --release \
-            --build-name="$VERSION" \
-            --build-number="${GITHUB_RUN_NUMBER}"
+            --build-name="${{ steps.version.outputs.name }}" \
+            --build-number="${{ steps.version.outputs.code }}"
 
-      - name: Upload to Google Play
+      - name: Upload to Google Play (Production)
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.shoukanlabs.moneywellspent
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
-          track: internal
+          track: production
           status: completed
+          # Full 100% rollout. For a staged rollout instead, use:
+          #   status: inProgress
+          #   userFraction: 0.2

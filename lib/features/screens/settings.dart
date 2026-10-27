@@ -28,31 +28,46 @@ class _OnboardingState extends State<OnboardingScreen> {
           body: SafeArea(
             child: PageBody(
               children: [
-                const SizedBox(height: 24),
+                const SizedBox(height: Brand.xxl),
                 Image.asset(
-                  'assets/01_primary_logo.png',
+                  'assets/07_stacked_logo_transparent.png',
                   height: 160,
                   semanticLabel: 'Money Well Spent',
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: Brand.xl),
                 Text(
                   'Small moments.\nMindful spending.',
-                  style: Theme.of(context).textTheme.headlineLarge,
+                  style: context.text.headlineLarge,
+                  textAlign: TextAlign.center,
                 ),
-                const Text(
+                Text(
                   'A clearer picture of where your money goes. No account needed. No connection required.',
+                  style: context.text.bodyLarge?.copyWith(color: Brand.muted),
+                  textAlign: TextAlign.center,
                 ),
-                const ListTile(
-                  leading: Icon(Icons.edit_note),
-                  title: Text('Capture the everyday'),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.insights_outlined),
-                  title: Text('Find your spending rhythm'),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.lock_outline),
-                  title: Text('Keep your ledger on your device'),
+                const SizedBox(height: Brand.sm),
+                AppCard(
+                  child: Column(
+                    children: const [
+                      _Feature(
+                        icon: Icons.edit_note,
+                        title: 'Capture the everyday',
+                        detail: 'Log an expense in a couple of taps.',
+                      ),
+                      SizedBox(height: Brand.lg),
+                      _Feature(
+                        icon: Icons.insights_outlined,
+                        title: 'Find your spending rhythm',
+                        detail: 'Daily, weekly, monthly and yearly views.',
+                      ),
+                      SizedBox(height: Brand.lg),
+                      _Feature(
+                        icon: Icons.lock_outline,
+                        title: 'Keep your ledger on your device',
+                        detail: 'Private by design. Nothing leaves your phone.',
+                      ),
+                    ],
+                  ),
                 ),
                 FilledButton(
                   onPressed: () => setState(() => setup = true),
@@ -66,6 +81,45 @@ class _OnboardingState extends State<OnboardingScreen> {
             ),
           ),
         );
+}
+
+class _Feature extends StatelessWidget {
+  const _Feature({
+    required this.icon,
+    required this.title,
+    required this.detail,
+  });
+  final IconData icon;
+  final String title, detail;
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: Brand.forest.withValues(alpha: .14),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Icon(icon, color: Brand.forest),
+      ),
+      const SizedBox(width: Brand.md),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title, style: context.text.titleMedium),
+            const SizedBox(height: 2),
+            Text(
+              detail,
+              style: context.text.bodyMedium?.copyWith(color: Brand.muted),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
 }
 
 Widget settingsScreen(BuildContext context, LedgerSnapshot data) =>
@@ -102,6 +156,11 @@ class _PreferencesState extends ConsumerState<PreferencesScreen> {
     budgetSignals = p?.budgetSignals ?? true;
     if (p == null) detectTimezone();
   }
+
+  // Currency is locked once any expense history or budget exists.
+  bool get currencyLocked =>
+      !widget.onboarding &&
+      (widget.data.expenses.isNotEmpty || widget.data.budgets.isNotEmpty);
 
   Future<void> detectTimezone() async {
     try {
@@ -206,7 +265,7 @@ class _PreferencesState extends ConsumerState<PreferencesScreen> {
             const Text(
               'This permanently erases all expenses, budgets, custom categories and preferences. Export first. Type ERASE to continue.',
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Brand.lg),
             TextField(
               controller: input,
               decoration: const InputDecoration(labelText: 'Type ERASE'),
@@ -255,96 +314,118 @@ class _PreferencesState extends ConsumerState<PreferencesScreen> {
             widget.onboarding
                 ? 'Your money, your perspective.'
                 : 'Your private space',
-            style: Theme.of(context).textTheme.headlineSmall,
+            style: context.text.headlineMedium,
           ),
-          const Text(
-            'Choose your book currency and timezone. Amounts are never converted or relabeled. Currency is locked once you have expense history or budgets.',
+          Text(
+            'Amounts are never converted or relabeled. Currency is locked once you have expense history or budgets.',
+            style: context.text.bodyMedium?.copyWith(color: Brand.muted),
           ),
-          DropdownButtonFormField<String>(
-            initialValue: currency,
-            decoration: const InputDecoration(labelText: 'Book currency'),
-            items: Money.exponents.keys
-                .map((code) => DropdownMenuItem(value: code, child: Text(code)))
-                .toList(),
-            onChanged: busy
-                ? null
-                : (value) => setState(() => currency = value),
-          ),
-          Autocomplete<String>(
-            initialValue: TextEditingValue(text: timezone.text),
-            optionsBuilder: (value) => tz.timeZoneDatabase.locations.keys
-                .where(
-                  (zone) =>
-                      zone.toLowerCase().contains(value.text.toLowerCase()),
-                )
-                .take(30),
-            onSelected: (value) => timezone.text = value,
-            fieldViewBuilder: (context, controller, focus, submit) {
-              // Device timezone may arrive after the field is first built.
-              if (controller.text.isEmpty && timezone.text.isNotEmpty) {
-                controller.text = timezone.text;
-              }
-              return TextField(
-                controller: controller,
-                focusNode: focus,
-                onChanged: (value) => timezone.text = value,
-                decoration: const InputDecoration(
-                  labelText: 'Timezone (IANA)',
-                  hintText: 'Asia/Karachi',
+          _Group(
+            title: 'Preferences',
+            children: [
+              DropdownButtonFormField<String>(
+                initialValue: currency,
+                decoration: InputDecoration(
+                  labelText: 'Book currency',
+                  suffixIcon: currencyLocked
+                      ? const Icon(Icons.lock_outline, size: 20)
+                      : null,
+                  helperText: currencyLocked
+                      ? 'Locked — you have expense history or budgets.'
+                      : null,
                 ),
-              );
-            },
-          ),
-          DropdownButtonFormField<int>(
-            initialValue: weekStart,
-            decoration: const InputDecoration(labelText: 'Week starts on'),
-            items: [
-              for (var i = 1; i <= 7; i++)
-                DropdownMenuItem(
-                  value: i,
-                  child: Text(
-                    [
-                      'Monday',
-                      'Tuesday',
-                      'Wednesday',
-                      'Thursday',
-                      'Friday',
-                      'Saturday',
-                      'Sunday',
-                    ][i - 1],
-                  ),
-                ),
+                items: Money.exponents.keys
+                    .map(
+                      (code) =>
+                          DropdownMenuItem(value: code, child: Text(code)),
+                    )
+                    .toList(),
+                onChanged: (busy || currencyLocked)
+                    ? null
+                    : (value) => setState(() => currency = value),
+              ),
+              const SizedBox(height: Brand.lg),
+              Autocomplete<String>(
+                initialValue: TextEditingValue(text: timezone.text),
+                optionsBuilder: (value) => tz.timeZoneDatabase.locations.keys
+                    .where(
+                      (zone) =>
+                          zone.toLowerCase().contains(value.text.toLowerCase()),
+                    )
+                    .take(30),
+                onSelected: (value) => timezone.text = value,
+                fieldViewBuilder: (context, controller, focus, submit) {
+                  // Device timezone may arrive after the field is first built.
+                  if (controller.text.isEmpty && timezone.text.isNotEmpty) {
+                    controller.text = timezone.text;
+                  }
+                  return TextField(
+                    controller: controller,
+                    focusNode: focus,
+                    onChanged: (value) => timezone.text = value,
+                    decoration: const InputDecoration(
+                      labelText: 'Timezone (IANA)',
+                      hintText: 'Asia/Karachi',
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: Brand.lg),
+              DropdownButtonFormField<int>(
+                initialValue: weekStart,
+                decoration: const InputDecoration(labelText: 'Week starts on'),
+                items: [
+                  for (var i = 1; i <= 7; i++)
+                    DropdownMenuItem(
+                      value: i,
+                      child: Text(
+                        [
+                          'Monday',
+                          'Tuesday',
+                          'Wednesday',
+                          'Thursday',
+                          'Friday',
+                          'Saturday',
+                          'Sunday',
+                        ][i - 1],
+                      ),
+                    ),
+                ],
+                onChanged: busy ? null : (v) => setState(() => weekStart = v!),
+              ),
             ],
-            onChanged: busy ? null : (v) => setState(() => weekStart = v!),
           ),
-          if (!widget.onboarding) ...[
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('In-app budget signals'),
-              subtitle: const Text('Show 75%, 90% and 100% milestones'),
-              value: budgetSignals,
-              onChanged: (v) => setState(() => budgetSignals = v),
+          if (!widget.onboarding)
+            _Group(
+              title: 'Budget & accessibility',
+              children: [
+                _SwitchRow(
+                  title: 'Budget reminders',
+                  subtitle: 'Show in-app signals at 75%, 90% and 100%.',
+                  value: budgetSignals,
+                  onChanged: (v) => setState(() => budgetSignals = v),
+                ),
+                _SwitchRow(
+                  title: 'Reduce motion',
+                  subtitle: 'Minimise animations and transitions.',
+                  value: reduceMotion,
+                  onChanged: (v) => setState(() => reduceMotion = v),
+                ),
+                _SwitchRow(
+                  title: 'Opaque surfaces',
+                  subtitle: 'Turn off translucency and blur.',
+                  value: reduceTransparency,
+                  onChanged: (v) => setState(() => reduceTransparency = v),
+                  last: true,
+                ),
+              ],
             ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Reduce motion'),
-              value: reduceMotion,
-              onChanged: (v) => setState(() => reduceMotion = v),
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Opaque surfaces'),
-              subtitle: const Text('Reduce transparency and blur'),
-              value: reduceTransparency,
-              onChanged: (v) => setState(() => reduceTransparency = v),
-            ),
-          ],
           if (error != null)
             Semantics(
               liveRegion: true,
               child: Text(
                 error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                style: TextStyle(color: context.scheme.error),
               ),
             ),
           FilledButton(
@@ -358,53 +439,176 @@ class _PreferencesState extends ConsumerState<PreferencesScreen> {
             ),
           ),
           if (!widget.onboarding) ...[
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.category_outlined),
-              title: const Text('Manage categories'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/settings/categories'),
+            _Group(
+              title: 'Your data',
+              children: [
+                _NavRow(
+                  icon: Icons.category_outlined,
+                  title: 'Manage categories',
+                  onTap: () => context.push('/settings/categories'),
+                ),
+                _NavRow(
+                  icon: Icons.ios_share,
+                  title: 'Export expenses as CSV',
+                  subtitle:
+                      'Active expenses, exact minor units, UTC timestamps. An export, not a restorable backup.',
+                  onTap: busy ? null : export,
+                ),
+                _NavRow(
+                  icon: Icons.delete_forever_outlined,
+                  title: 'Erase local data',
+                  destructive: true,
+                  onTap: busy ? null : erase,
+                  last: true,
+                ),
+              ],
             ),
-            const ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.notifications_none),
-              title: Text('Budget signals'),
-              subtitle: Text(
-                'In-app signals are shown at 75%, 90% and 100%. Device notifications are not enabled in this version.',
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Privacy, by design', style: context.text.titleMedium),
+                  const SizedBox(height: Brand.sm),
+                  Text(
+                    'Your ledger stays in local SQLite storage. No account, analytics, crash reporting or network service is used. Exports leave the app only through the destination you choose. Uninstalling may remove your records; export before uninstalling.',
+                    style: context.text.bodyMedium?.copyWith(
+                      color: Brand.muted,
+                    ),
+                  ),
+                  const SizedBox(height: Brand.sm),
+                  TextButton(
+                    onPressed: () => showLicensePage(
+                      context: context,
+                      applicationName: 'Money Well Spent',
+                    ),
+                    child: const Text('Open-source licenses'),
+                  ),
+                ],
               ),
-            ),
-            OutlinedButton.icon(
-              onPressed: busy ? null : export,
-              icon: const Icon(Icons.ios_share),
-              label: const Text('Export expenses as CSV'),
-            ),
-            const Text(
-              'CSV includes active expenses, exact minor units and UTC timestamps. It is an export, not a restorable backup.',
-            ),
-            TextButton(
-              onPressed: busy ? null : erase,
-              child: const Text('Erase local data'),
-            ),
-            const Divider(),
-            Text(
-              'Privacy, by design',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const Text(
-              'Your ledger stays in local SQLite storage. No account, analytics, crash reporting or network service is used. Exports leave the app only through the destination you choose. Protect access to your device. Uninstalling the app may remove your records; export before uninstalling.',
-            ),
-            TextButton(
-              onPressed: () => showLicensePage(
-                context: context,
-                applicationName: 'Money Well Spent',
-              ),
-              child: const Text('Open-source licenses'),
             ),
           ],
         ],
       ),
     ),
   );
+}
+
+/// A titled group of settings rendered as one card.
+class _Group extends StatelessWidget {
+  const _Group({required this.title, required this.children});
+  final String title;
+  final List<Widget> children;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(bottom: Brand.md, left: Brand.xs),
+        child: Text(title, style: context.text.titleLarge),
+      ),
+      AppCard(child: Column(children: children)),
+    ],
+  );
+}
+
+class _SwitchRow extends StatelessWidget {
+  const _SwitchRow({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+    this.last = false,
+  });
+  final String title, subtitle;
+  final bool value, last;
+  final ValueChanged<bool> onChanged;
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(bottom: last ? 0 : Brand.md),
+    child: Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(title, style: context.text.titleMedium),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: context.text.bodyMedium?.copyWith(color: Brand.muted),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: Brand.md),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeTrackColor: Brand.forest,
+        ),
+      ],
+    ),
+  );
+}
+
+class _NavRow extends StatelessWidget {
+  const _NavRow({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.subtitle,
+    this.destructive = false,
+    this.last = false,
+  });
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback? onTap;
+  final bool destructive, last;
+  @override
+  Widget build(BuildContext context) {
+    final color = destructive ? Brand.cherry : context.scheme.onSurface;
+    return Padding(
+      padding: EdgeInsets.only(bottom: last ? 0 : Brand.xs),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(Brand.md),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: Brand.sm),
+          child: Row(
+            children: [
+              Icon(icon, color: destructive ? Brand.cherry : Brand.forest),
+              const SizedBox(width: Brand.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: context.text.titleMedium?.copyWith(color: color),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: context.text.bodyMedium?.copyWith(
+                          color: Brand.muted,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (!destructive)
+                const Icon(Icons.chevron_right, color: Brand.muted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 Widget categoriesScreen(BuildContext context, LedgerSnapshot data) =>
@@ -437,7 +641,7 @@ class CategoryManager extends ConsumerWidget {
                   decoration: const InputDecoration(labelText: 'Category name'),
                 ),
                 Wrap(
-                  spacing: 8,
+                  spacing: Brand.sm,
                   children: [
                     for (var i = 0; i < categoryIcons.length; i++)
                       ChoiceChip(
@@ -459,6 +663,7 @@ class CategoryManager extends ConsumerWidget {
                       ),
                   ],
                 ),
+                const SizedBox(height: Brand.sm),
                 DropdownButtonFormField<String>(
                   initialValue: color,
                   decoration: const InputDecoration(labelText: 'Accent'),
@@ -512,57 +717,94 @@ class CategoryManager extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
     appBar: AppBar(title: const Text('Categories')),
-    body: PageBody(
-      children: [
-        const Text(
-          'Archive custom categories to keep history intact. Built-in categories always remain available.',
-        ),
-        FilledButton.icon(
-          onPressed: () => edit(context, ref),
-          icon: const Icon(Icons.add),
-          label: const Text('New category'),
-        ),
-        ...data.categories.map(
-          (c) => ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(categoryIcon(c.icon)),
-            title: Text(c.name),
-            subtitle: Text(
-              c.system
-                  ? 'Built-in'
-                  : c.archived
-                  ? 'Archived · retained in history'
-                  : 'Custom',
-            ),
-            onTap: c.system ? null : () => edit(context, ref, c),
-            trailing: c.system
-                ? null
-                : IconButton(
-                    tooltip: c.archived
-                        ? 'Restore category'
-                        : 'Archive category',
-                    icon: Icon(
-                      c.archived
-                          ? Icons.unarchive_outlined
-                          : Icons.archive_outlined,
-                    ),
-                    onPressed: () async {
-                      try {
-                        await ref
-                            .read(repositoryProvider)
-                            .archiveCategory(c.id, !c.archived);
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(friendlyError(e))),
-                          );
-                        }
-                      }
-                    },
-                  ),
+    body: SafeArea(
+      child: PageBody(
+        children: [
+          Text(
+            'Archive custom categories to keep history intact. Built-in categories always remain available.',
+            style: context.text.bodyMedium?.copyWith(color: Brand.muted),
           ),
-        ),
-      ],
+          FilledButton.icon(
+            onPressed: () => edit(context, ref),
+            icon: const Icon(Icons.add),
+            label: const Text('New category'),
+          ),
+          AppCard(
+            padding: const EdgeInsets.symmetric(
+              horizontal: Brand.md,
+              vertical: Brand.sm,
+            ),
+            child: Column(
+              children: [
+                for (final c in data.categories)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: Brand.sm),
+                    child: Row(
+                      children: [
+                        CategoryAvatar(
+                          iconKey: c.icon,
+                          colorKey: c.color,
+                          size: 40,
+                        ),
+                        const SizedBox(width: Brand.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(c.name, style: context.text.titleMedium),
+                              const SizedBox(height: 2),
+                              Text(
+                                c.system
+                                    ? 'Built-in'
+                                    : c.archived
+                                    ? 'Archived · retained in history'
+                                    : 'Custom',
+                                style: context.text.bodyMedium?.copyWith(
+                                  color: Brand.muted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (!c.system) ...[
+                          IconButton(
+                            tooltip: c.archived
+                                ? 'Restore category'
+                                : 'Archive category',
+                            icon: Icon(
+                              c.archived
+                                  ? Icons.unarchive_outlined
+                                  : Icons.archive_outlined,
+                            ),
+                            onPressed: () async {
+                              try {
+                                await ref
+                                    .read(repositoryProvider)
+                                    .archiveCategory(c.id, !c.archived);
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(friendlyError(e))),
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                          IconButton(
+                            tooltip: 'Edit category',
+                            icon: const Icon(Icons.edit_outlined),
+                            onPressed: () => edit(context, ref, c),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }

@@ -211,29 +211,9 @@ class AppShell extends StatelessWidget {
   final StatefulNavigationShell shell;
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Row(
-        children: [
-          Image.asset(
-            'assets/03_symbol_full_color.png',
-            width: 34,
-            height: 34,
-            excludeFromSemantics: true,
-          ),
-          const SizedBox(width: 10),
-          const Flexible(child: Text('Money Well Spent')),
-        ],
-      ),
-      actions: [
-        IconButton(
-          tooltip: 'Settings',
-          onPressed: () => context.push('/settings'),
-          icon: const Icon(Icons.settings_outlined),
-        ),
-      ],
-    ),
+    appBar: const BrandHeader(),
     body: SafeArea(child: shell),
-    floatingActionButton: shell.currentIndex < 2
+    floatingActionButton: shell.currentIndex == 0
         ? FloatingActionButton.extended(
             onPressed: () => context.push('/expenses/new'),
             icon: const Icon(Icons.add),
@@ -251,18 +231,58 @@ class AppShell extends StatelessWidget {
         ),
         NavigationDestination(
           icon: Icon(Icons.receipt_long_outlined),
+          selectedIcon: Icon(Icons.receipt_long),
           label: 'Activity',
         ),
         NavigationDestination(
-          icon: Icon(Icons.bar_chart_rounded),
+          icon: Icon(Icons.pie_chart_outline_rounded),
+          selectedIcon: Icon(Icons.pie_chart_rounded),
           label: 'Insights',
         ),
         NavigationDestination(
           icon: Icon(Icons.account_balance_wallet_outlined),
+          selectedIcon: Icon(Icons.account_balance_wallet),
           label: 'Budget',
         ),
       ],
     ),
+  );
+}
+
+/// Compact branded header: transparent Coin Path symbol, wordmark, settings.
+class BrandHeader extends StatelessWidget implements PreferredSizeWidget {
+  const BrandHeader({super.key});
+  @override
+  Size get preferredSize => const Size.fromHeight(64);
+  @override
+  Widget build(BuildContext context) => AppBar(
+    titleSpacing: Brand.xl,
+    title: Row(
+      children: [
+        Image.asset(
+          'assets/01_coin_path_symbol_transparent_512w.png',
+          width: 34,
+          height: 34,
+          excludeFromSemantics: true,
+        ),
+        const SizedBox(width: Brand.md),
+        Flexible(
+          child: Text(
+            'Money Well Spent',
+            style: context.text.titleMedium,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    ),
+    actions: [
+      IconButton(
+        tooltip: 'Settings',
+        onPressed: () => context.push('/settings'),
+        icon: const Icon(Icons.settings_outlined),
+      ),
+      const SizedBox(width: Brand.xs),
+    ],
   );
 }
 
@@ -275,10 +295,13 @@ class PageBody extends StatelessWidget {
     child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 760),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 100),
+        padding: const EdgeInsets.fromLTRB(Brand.xl, Brand.md, Brand.xl, 112),
         children: [
           for (final child in children)
-            Padding(padding: const EdgeInsets.only(bottom: 20), child: child),
+            Padding(
+              padding: const EdgeInsets.only(bottom: Brand.xl),
+              child: child,
+            ),
         ],
       ),
     ),

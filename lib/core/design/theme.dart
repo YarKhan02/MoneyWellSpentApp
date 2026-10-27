@@ -1,102 +1,483 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+/// Brand palette and spacing/radius scale. Single source of colour truth.
 abstract final class Brand {
-  static const forest = Color(0xFF327039);
-  static const wheat = Color(0xFFF0BE49);
-  static const earth = Color(0xFF133020);
-  static const hay = Color(0xFFF8EDD9);
-  static const cherry = Color(0xFFDD5C36);
-  static const muted = Color(0xFF49614F);
-  static const spacing = 24.0;
-  static const radius = 24.0;
+  static const forest = Color(0xFF327039); // Forest Fern
+  static const wheat = Color(0xFFF0BE49); // Wheat Field Sunrise
+  static const earth = Color(0xFF133020); // Tilled Earth
+  static const hay = Color(0xFFF8EDD9); // Alabaster Hay
+  static const cherry = Color(0xFFDD5C36); // Cherry Grove
+  static const muted = Color(0xFF49614F); // secondary dark-green text
+
+  // Spacing scale (4 → 48).
+  static const xs = 4.0, sm = 8.0, md = 12.0, lg = 16.0;
+  static const xl = 20.0, xxl = 24.0, section = 28.0, xxxl = 32.0;
+  // Legacy aliases still referenced around the app.
+  static const spacing = xxl;
+  static const radius = 22.0;
+  // Corner radii.
+  static const heroRadius = 28.0, cardRadius = 22.0, smallRadius = 16.0;
+  static const buttonRadius = 16.0;
 
   static ThemeData theme(Brightness brightness) {
     final dark = brightness == Brightness.dark;
+    // Dark hierarchy keeps depth instead of a single flat green.
+    const darkBg = Color(0xFF10281C);
+    const darkCard = Color(0xFF1A3828);
+    const darkRaised = Color(0xFF294638);
+
     final scheme =
         ColorScheme.fromSeed(
           seedColor: forest,
           brightness: brightness,
         ).copyWith(
-          primary: dark ? wheat : forest,
-          onPrimary: dark ? earth : Colors.white,
-          surface: dark ? earth : hay,
+          primary: forest,
+          onPrimary: Colors.white,
+          secondary: wheat,
+          onSecondary: earth,
+          tertiary: cherry,
+          surface: dark ? darkBg : hay,
           onSurface: dark ? hay : earth,
+          surfaceContainerLowest: dark ? darkBg : hay,
+          surfaceContainer: dark ? darkCard : Colors.white,
+          surfaceContainerHighest: dark ? darkRaised : const Color(0xFFFBF4E6),
+          outlineVariant: dark ? darkRaised : const Color(0x22133020),
           error: dark ? const Color(0xFFFFB5A0) : const Color(0xFFA12D14),
         );
+
+    final tokens = dark
+        ? const AppTokens(
+            hero: darkCard,
+            heroNested: darkRaised,
+            onHero: hay,
+            onHeroMuted: Color(0xFFBFD3C4),
+            neutralCard: darkCard,
+            cardBorder: darkRaised,
+            track: Color(0x33F0BE49),
+            shadow: <BoxShadow>[],
+          )
+        : const AppTokens(
+            hero: earth,
+            heroNested: Color(0xFF294638),
+            onHero: hay,
+            onHeroMuted: Color(0xFFBFD3C4),
+            neutralCard: Colors.white,
+            cardBorder: Color(0x14133020),
+            track: Color(0x33327039),
+            shadow: <BoxShadow>[
+              BoxShadow(
+                color: Color(0x14133020),
+                blurRadius: 24,
+                offset: Offset(0, 10),
+              ),
+            ],
+          );
+
+    final onSurface = scheme.onSurface;
+    final textTheme = TextTheme(
+      // Main spending amount.
+      displaySmall: const TextStyle(
+        fontSize: 36,
+        fontWeight: FontWeight.w700,
+        height: 1.05,
+        fontFeatures: [FontFeature.tabularFigures()],
+      ),
+      headlineLarge: const TextStyle(
+        fontSize: 34,
+        fontWeight: FontWeight.w700,
+        height: 1.05,
+        fontFeatures: [FontFeature.tabularFigures()],
+      ),
+      // Page heading.
+      headlineMedium: const TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.w700,
+      ),
+      headlineSmall: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+      // Section title.
+      titleLarge: const TextStyle(fontSize: 21, fontWeight: FontWeight.w600),
+      // Card title.
+      titleMedium: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+      bodyLarge: const TextStyle(fontSize: 16, height: 1.4),
+      bodyMedium: const TextStyle(fontSize: 14, height: 1.4),
+      labelLarge: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+      labelMedium: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+    ).apply(bodyColor: onSurface, displayColor: onSurface);
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
       fontFamily: 'PlusJakartaSans',
       scaffoldBackgroundColor: scheme.surface,
+      extensions: [tokens],
+      textTheme: textTheme,
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
-        foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
+        foregroundColor: onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
+        systemOverlayStyle: dark
+            ? SystemUiOverlayStyle.light.copyWith(
+                statusBarColor: Colors.transparent,
+                systemNavigationBarColor: darkBg,
+              )
+            : SystemUiOverlayStyle.dark.copyWith(
+                statusBarColor: Colors.transparent,
+                systemNavigationBarColor: hay,
+              ),
       ),
-      textTheme: const TextTheme(
-        headlineLarge: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.w600,
-          fontFeatures: [FontFeature.tabularFigures()],
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: dark ? darkCard : Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        height: 68,
+        indicatorColor: dark ? darkRaised : forest.withValues(alpha: .14),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (s) => IconThemeData(
+            color: s.contains(WidgetState.selected) ? forest : scheme.onSurface,
+          ),
         ),
-        headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-        titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-        bodyLarge: TextStyle(fontSize: 16, height: 1.4),
-        bodyMedium: TextStyle(fontSize: 15, height: 1.4),
+        labelTextStyle: WidgetStateProperty.all(textTheme.labelMedium),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-        contentPadding: const EdgeInsets.all(16),
+        fillColor: dark ? darkCard : Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(smallRadius),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(smallRadius),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(smallRadius),
+          borderSide: const BorderSide(color: forest, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(48, 52),
+          backgroundColor: forest,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(48, 54),
+          textStyle: textTheme.titleMedium,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(buttonRadius),
           ),
         ),
       ),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radius),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: dark ? wheat : forest,
+          minimumSize: const Size(48, 52),
+          side: BorderSide(color: scheme.outlineVariant),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(buttonRadius),
+          ),
         ),
       ),
-      snackBarTheme: const SnackBarThemeData(
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: dark ? wheat : forest),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: dark ? darkCard : Colors.white,
+        selectedColor: forest,
+        side: BorderSide(color: scheme.outlineVariant),
+        shape: const StadiumBorder(),
+        labelStyle: TextStyle(color: onSurface, fontWeight: FontWeight.w600),
+        secondaryLabelStyle: const TextStyle(color: Colors.white),
+        showCheckmark: false,
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: dark ? darkCard : Colors.white,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(cardRadius),
+        ),
+      ),
+      dividerTheme: DividerThemeData(
+        color: scheme.outlineVariant,
+        thickness: 1,
+      ),
+      snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
+        backgroundColor: earth,
+        contentTextStyle: const TextStyle(color: hay),
+        actionTextColor: wheat,
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: forest,
+        foregroundColor: Colors.white,
       ),
     );
   }
 }
 
-class GlassCard extends StatelessWidget {
-  const GlassCard({super.key, required this.child, this.opaque = false});
+/// Semantic surface tokens that Material's ColorScheme does not express well.
+@immutable
+class AppTokens extends ThemeExtension<AppTokens> {
+  const AppTokens({
+    required this.hero,
+    required this.heroNested,
+    required this.onHero,
+    required this.onHeroMuted,
+    required this.neutralCard,
+    required this.cardBorder,
+    required this.track,
+    required this.shadow,
+  });
+  final Color hero,
+      heroNested,
+      onHero,
+      onHeroMuted,
+      neutralCard,
+      cardBorder,
+      track;
+  final List<BoxShadow> shadow;
+
+  @override
+  AppTokens copyWith({
+    Color? hero,
+    Color? heroNested,
+    Color? onHero,
+    Color? onHeroMuted,
+    Color? neutralCard,
+    Color? cardBorder,
+    Color? track,
+    List<BoxShadow>? shadow,
+  }) => AppTokens(
+    hero: hero ?? this.hero,
+    heroNested: heroNested ?? this.heroNested,
+    onHero: onHero ?? this.onHero,
+    onHeroMuted: onHeroMuted ?? this.onHeroMuted,
+    neutralCard: neutralCard ?? this.neutralCard,
+    cardBorder: cardBorder ?? this.cardBorder,
+    track: track ?? this.track,
+    shadow: shadow ?? this.shadow,
+  );
+
+  @override
+  AppTokens lerp(AppTokens? other, double t) {
+    if (other == null) return this;
+    return AppTokens(
+      hero: Color.lerp(hero, other.hero, t)!,
+      heroNested: Color.lerp(heroNested, other.heroNested, t)!,
+      onHero: Color.lerp(onHero, other.onHero, t)!,
+      onHeroMuted: Color.lerp(onHeroMuted, other.onHeroMuted, t)!,
+      neutralCard: Color.lerp(neutralCard, other.neutralCard, t)!,
+      cardBorder: Color.lerp(cardBorder, other.cardBorder, t)!,
+      track: Color.lerp(track, other.track, t)!,
+      shadow: t < .5 ? shadow : other.shadow,
+    );
+  }
+}
+
+extension AppTheme on BuildContext {
+  AppTokens get tokens => Theme.of(this).extension<AppTokens>()!;
+  TextTheme get text => Theme.of(this).textTheme;
+  ColorScheme get scheme => Theme.of(this).colorScheme;
+}
+
+/// Neutral card that sits on the cream canvas. Soft border + gentle shadow.
+class AppCard extends StatelessWidget {
+  const AppCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(Brand.xxl),
+    this.radius = Brand.cardRadius,
+    this.color,
+    this.onTap,
+  });
   final Widget child;
-  final bool opaque;
+  final EdgeInsets padding;
+  final double radius;
+  final Color? color;
+  final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
+    final t = context.tokens;
+    final card = Ink(
+      decoration: BoxDecoration(
+        color: color ?? t.neutralCard,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: t.cardBorder),
+        boxShadow: onTap == null ? t.shadow : null,
+      ),
+      child: Padding(padding: padding, child: child),
+    );
+    if (onTap == null) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(radius),
+          boxShadow: t.shadow,
+        ),
+        child: card,
+      );
+    }
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(radius),
+        onTap: onTap,
+        child: card,
+      ),
+    );
+  }
+}
+
+/// Deep Tilled-Earth hero surface for prominent financial summaries.
+class HeroCard extends StatelessWidget {
+  const HeroCard({super.key, required this.child, this.padding});
+  final Widget child;
+  final EdgeInsets? padding;
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: padding ?? const EdgeInsets.all(Brand.xxl),
+    decoration: BoxDecoration(
+      color: context.tokens.hero,
+      borderRadius: BorderRadius.circular(Brand.heroRadius),
+    ),
+    child: DefaultTextStyle.merge(
+      style: TextStyle(color: context.tokens.onHero),
+      child: IconTheme.merge(
+        data: IconThemeData(color: context.tokens.onHero),
+        child: child,
+      ),
+    ),
+  );
+}
+
+/// A row heading with an optional trailing action.
+class SectionHeader extends StatelessWidget {
+  const SectionHeader({super.key, required this.title, this.action});
+  final String title;
+  final Widget? action;
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Expanded(child: Text(title, style: context.text.titleLarge)),
+      ?action,
+    ],
+  );
+}
+
+/// Compact metric tile (e.g. Today / This week).
+class MetricCard extends StatelessWidget {
+  const MetricCard({
+    super.key,
+    required this.label,
+    required this.value,
+    this.onTap,
+  });
+  final String label, value;
+  final VoidCallback? onTap;
+  @override
+  Widget build(BuildContext context) => AppCard(
+    onTap: onTap,
+    padding: const EdgeInsets.all(Brand.lg),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: context.text.labelLarge?.copyWith(color: Brand.muted),
+        ),
+        const SizedBox(height: Brand.sm),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(value, style: context.text.titleLarge),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Category colour + icon helpers.
+Color categoryColor(String key) => switch (key) {
+  'wheat' => Brand.wheat,
+  'cherry' => Brand.cherry,
+  _ => Brand.forest,
+};
+
+/// Rounded tinted square holding a category icon.
+class CategoryAvatar extends StatelessWidget {
+  const CategoryAvatar({
+    super.key,
+    required this.iconKey,
+    this.colorKey = 'forest',
+    this.size = 44,
+    this.onHero = false,
+  });
+  final String iconKey, colorKey;
+  final double size;
+  final bool onHero;
+  @override
+  Widget build(BuildContext context) {
+    final c = categoryColor(colorKey);
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: c.withValues(alpha: onHero ? .28 : .16),
+        borderRadius: BorderRadius.circular(size * .3),
+      ),
+      child: Icon(
+        categoryIcon(iconKey),
+        size: size * .5,
+        color: onHero ? Brand.hay : c,
+      ),
+    );
+  }
+}
+
+/// Subtle glassmorphism, used sparingly for nested/floating surfaces.
+/// Becomes fully opaque when the user prefers opaque surfaces.
+class GlassCard extends StatelessWidget {
+  const GlassCard({
+    super.key,
+    required this.child,
+    this.opaque = false,
+    this.onHero = false,
+  });
+  final Widget child;
+  final bool opaque, onHero;
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
     final solid =
         opaque ||
         MediaQuery.of(context).disableAnimations ||
         MediaQuery.of(context).highContrast;
+    final base = onHero ? t.heroNested : t.neutralCard;
     final content = Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Brand.xxl),
       decoration: BoxDecoration(
-        color: dark
-            ? Brand.earth
-            : Colors.white.withValues(alpha: solid ? 1 : .88),
-        border: Border.all(color: dark ? Brand.muted : Colors.white),
-        borderRadius: BorderRadius.circular(Brand.radius),
+        color: base.withValues(alpha: solid ? 1 : .86),
+        border: Border.all(
+          color: onHero ? Colors.white.withValues(alpha: .08) : t.cardBorder,
+        ),
+        borderRadius: BorderRadius.circular(Brand.cardRadius),
       ),
-      child: child,
+      child: DefaultTextStyle.merge(
+        style: TextStyle(color: onHero ? t.onHero : context.scheme.onSurface),
+        child: child,
+      ),
     );
     return ClipRRect(
-      borderRadius: BorderRadius.circular(Brand.radius),
+      borderRadius: BorderRadius.circular(Brand.cardRadius),
       child: solid
           ? content
           : BackdropFilter(
@@ -112,25 +493,35 @@ class EmptyState extends StatelessWidget {
     super.key,
     required this.title,
     required this.message,
+    this.icon = Icons.spa_outlined,
     this.action,
   });
   final String title, message;
+  final IconData icon;
   final Widget? action;
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 32),
+  Widget build(BuildContext context) => AppCard(
+    padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
     child: Column(
       children: [
-        const Icon(Icons.spa_outlined, size: 48),
-        const SizedBox(height: 16),
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: Brand.forest.withValues(alpha: .12),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.spa_outlined, size: 30, color: Brand.forest),
+        ),
+        const SizedBox(height: Brand.lg),
         Text(
           title,
-          style: Theme.of(context).textTheme.titleLarge,
+          style: context.text.titleLarge,
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: Brand.sm),
         Text(message, textAlign: TextAlign.center),
-        if (action != null) ...[const SizedBox(height: 20), action!],
+        if (action != null) ...[const SizedBox(height: Brand.xl), action!],
       ],
     ),
   );

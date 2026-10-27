@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -93,6 +94,7 @@ class _ExpenseFormState extends ConsumerState<ExpenseForm> {
             editing: widget.id != null,
           );
       if (mounted) {
+        HapticFeedback.lightImpact();
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Expense saved on this device.')),
@@ -160,11 +162,12 @@ class _ExpenseFormState extends ConsumerState<ExpenseForm> {
         ),
       );
     }
+    final editing = widget.id != null;
     final body = Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: context.scheme.surface,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(widget.id == null ? 'A little spent' : 'Edit expense'),
+        title: Text(editing ? 'Edit expense' : 'A little spent'),
         actions: [
           IconButton(
             tooltip: 'Close',
@@ -176,31 +179,47 @@ class _ExpenseFormState extends ConsumerState<ExpenseForm> {
       body: SafeArea(
         child: PageBody(
           children: [
-            const Text('Make a note. Move on with your day.'),
-            TextField(
-              controller: amount,
-              autofocus: widget.id == null,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: Theme.of(context).textTheme.headlineLarge,
-              decoration: InputDecoration(
-                labelText: 'Amount',
-                prefixText: '${widget.data.profile!.currency} ',
-              ),
-            ),
             Text(
-              'Choose a category',
-              style: Theme.of(context).textTheme.titleLarge,
+              'Make a note. Move on with your day.',
+              style: context.text.bodyLarge?.copyWith(color: Brand.muted),
             ),
+            AppCard(
+              child: TextField(
+                controller: amount,
+                autofocus: !editing,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                style: context.text.displaySmall,
+                decoration: InputDecoration(
+                  filled: false,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                  labelText: 'Amount',
+                  prefixText: '${widget.data.profile!.currency} ',
+                  prefixStyle: context.text.titleLarge?.copyWith(
+                    color: Brand.muted,
+                  ),
+                ),
+              ),
+            ),
+            Text('Choose a category', style: context.text.titleLarge),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: Brand.sm,
+              runSpacing: Brand.sm,
               children: widget.data.categories
                   .where((c) => !c.archived || c.id == existing?.categoryId)
                   .map(
                     (c) => ChoiceChip(
-                      avatar: Icon(categoryIcon(c.icon), size: 18),
+                      avatar: Icon(
+                        categoryIcon(c.icon),
+                        size: 18,
+                        color: c.id == category
+                            ? Colors.white
+                            : categoryColor(c.color),
+                      ),
                       label: Text(c.name),
                       selected: c.id == category,
                       onSelected: busy
@@ -228,7 +247,7 @@ class _ExpenseFormState extends ConsumerState<ExpenseForm> {
                 liveRegion: true,
                 child: Text(
                   error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  style: TextStyle(color: context.scheme.error),
                 ),
               ),
             FilledButton(
@@ -239,13 +258,15 @@ class _ExpenseFormState extends ConsumerState<ExpenseForm> {
         ),
       ),
     );
-    if (widget.id != null) return body;
+    if (editing) return body;
     return Align(
       alignment: Alignment.bottomCenter,
       child: FractionallySizedBox(
         heightFactor: .94,
         child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(Brand.heroRadius),
+          ),
           child: body,
         ),
       ),
@@ -260,39 +281,106 @@ class ExpenseDetail extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final e = data.expenses.where((e) => e.id == id).firstOrNull;
+    final category = e == null ? null : data.category(e.categoryId);
     return Scaffold(
       appBar: AppBar(title: const Text('Expense detail')),
       body: SafeArea(
         child: e == null
-            ? const EmptyState(
-                title: 'Expense not found',
-                message:
-                    'It may have been deleted. Your other entries are safe.',
+            ? const Padding(
+                padding: EdgeInsets.all(Brand.xl),
+                child: EmptyState(
+                  title: 'Expense not found',
+                  message:
+                      'It may have been deleted. Your other entries are safe.',
+                ),
               )
             : PageBody(
                 children: [
-                  Text(
-                    e.amount.formatted,
-                    style: Theme.of(context).textTheme.headlineLarge,
+                  HeroCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CategoryAvatar(
+                              iconKey: category!.icon,
+                              colorKey: category.color,
+                              onHero: true,
+                            ),
+                            const SizedBox(width: Brand.md),
+                            Expanded(
+                              child: Text(
+                                category.name,
+                                style: context.text.titleMedium?.copyWith(
+                                  color: Brand.hay,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: Brand.lg),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            e.amount.formatted,
+                            style: context.text.displaySmall?.copyWith(
+                              color: Brand.hay,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: Brand.sm),
+                        Text(
+                          localDate(e.occurredAt, data.profile!, time: true),
+                          style: context.text.bodyMedium?.copyWith(
+                            color: context.tokens.onHeroMuted,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Text(
-                    data.category(e.categoryId).name,
-                    style: Theme.of(context).textTheme.titleLarge,
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _DetailRow(
+                          label: 'Timezone',
+                          value: data.profile!.timezone,
+                        ),
+                        _DetailRow(
+                          label: 'Note',
+                          value: e.note.isEmpty ? 'No note added.' : e.note,
+                        ),
+                        _DetailRow(
+                          label: 'Created',
+                          value: localDate(
+                            e.createdAt,
+                            data.profile!,
+                            time: true,
+                          ),
+                        ),
+                        _DetailRow(
+                          label: 'Updated',
+                          value: localDate(
+                            e.updatedAt,
+                            data.profile!,
+                            time: true,
+                          ),
+                          last: true,
+                        ),
+                      ],
+                    ),
                   ),
-                  Text(localDate(e.occurredAt, data.profile!, time: true)),
-                  Text(data.profile!.timezone),
-                  Text(e.note.isEmpty ? 'No note added.' : e.note),
-                  Text(
-                    'Created ${localDate(e.createdAt, data.profile!, time: true)}',
-                  ),
-                  Text(
-                    'Updated ${localDate(e.updatedAt, data.profile!, time: true)}',
-                  ),
-                  FilledButton(
+                  FilledButton.icon(
                     onPressed: () => context.push('/expenses/$id/edit'),
-                    child: const Text('Edit expense'),
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Edit expense'),
                   ),
                   OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Brand.cherry,
+                      side: const BorderSide(color: Brand.cherry),
+                    ),
                     icon: const Icon(Icons.delete_outline),
                     label: const Text('Delete expense'),
                     onPressed: () async {
@@ -349,6 +437,33 @@ class ExpenseDetail extends ConsumerWidget {
   }
 }
 
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    this.last = false,
+  });
+  final String label, value;
+  final bool last;
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(bottom: last ? 0 : Brand.md),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 92,
+          child: Text(
+            label,
+            style: context.text.bodyMedium?.copyWith(color: Brand.muted),
+          ),
+        ),
+        Expanded(child: Text(value, style: context.text.bodyLarge)),
+      ],
+    ),
+  );
+}
+
 class BudgetForm extends ConsumerStatefulWidget {
   const BudgetForm({super.key, required this.data, required this.period});
   final LedgerSnapshot data;
@@ -388,6 +503,7 @@ class _BudgetFormState extends ConsumerState<BudgetForm> {
             Money.parse(amount.text, widget.data.profile!.currency),
           );
       if (mounted) {
+        HapticFeedback.lightImpact();
         context.pop();
       }
     } catch (e) {
@@ -405,59 +521,72 @@ class _BudgetFormState extends ConsumerState<BudgetForm> {
     appBar: AppBar(
       title: Text('${widget.period == 'week' ? 'Weekly' : 'Monthly'} cap'),
     ),
-    body: PageBody(
-      children: [
-        const Text(
-          'Choose an amount that fits your life. You can adjust it anytime.',
-        ),
-        TextField(
-          controller: amount,
-          autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(
-            labelText: 'Spending cap',
-            prefixText: '${widget.data.profile!.currency} ',
-          ),
-        ),
-        if (error != null)
+    body: SafeArea(
+      child: PageBody(
+        children: [
           Text(
-            error!,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
+            'Choose an amount that fits your life. You can adjust it anytime.',
+            style: context.text.bodyLarge?.copyWith(color: Brand.muted),
           ),
-        FilledButton(
-          onPressed: busy ? null : save,
-          child: Text(busy ? 'Saving…' : 'Save cap'),
-        ),
-        if (budget != null)
-          TextButton(
-            onPressed: busy
-                ? null
-                : () async {
-                    if (!await confirm(
-                      context,
-                      'Remove this cap?',
-                      'Your expenses will be kept.',
-                    )) {
-                      return;
-                    }
-                    setState(() => busy = true);
-                    try {
-                      await ref
-                          .read(repositoryProvider)
-                          .removeBudget(budget!.id);
-                      if (context.mounted) context.pop();
-                    } catch (e) {
-                      if (mounted) {
-                        setState(() {
-                          busy = false;
-                          error = friendlyError(e);
-                        });
+          AppCard(
+            child: TextField(
+              controller: amount,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: context.text.headlineMedium,
+              decoration: InputDecoration(
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                labelText: 'Spending cap',
+                prefixText: '${widget.data.profile!.currency} ',
+                prefixStyle: context.text.titleLarge?.copyWith(
+                  color: Brand.muted,
+                ),
+              ),
+            ),
+          ),
+          if (error != null)
+            Text(error!, style: TextStyle(color: context.scheme.error)),
+          FilledButton(
+            onPressed: busy ? null : save,
+            child: Text(busy ? 'Saving…' : 'Save cap'),
+          ),
+          if (budget != null)
+            TextButton(
+              onPressed: busy
+                  ? null
+                  : () async {
+                      if (!await confirm(
+                        context,
+                        'Remove this cap?',
+                        'Your expenses will be kept.',
+                      )) {
+                        return;
                       }
-                    }
-                  },
-            child: const Text('Remove budget'),
-          ),
-      ],
+                      setState(() => busy = true);
+                      try {
+                        await ref
+                            .read(repositoryProvider)
+                            .removeBudget(budget!.id);
+                        if (context.mounted) context.pop();
+                      } catch (e) {
+                        if (mounted) {
+                          setState(() {
+                            busy = false;
+                            error = friendlyError(e);
+                          });
+                        }
+                      }
+                    },
+              child: const Text('Remove budget'),
+            ),
+        ],
+      ),
     ),
   );
 }

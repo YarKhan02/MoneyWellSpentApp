@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -211,16 +212,94 @@ class AppShell extends StatelessWidget {
   final StatefulNavigationShell shell;
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const BrandHeader(),
-    body: SafeArea(child: shell),
-    floatingActionButton: shell.currentIndex == 0
-        ? FloatingActionButton.extended(
-            onPressed: () => context.push('/expenses/new'),
-            icon: const Icon(Icons.add),
-            label: const Text('Add expense'),
-          )
-        : null,
-    bottomNavigationBar: NavigationBar(
+    // Bars are docked (not extendBody) so the floating nav / Add bar never
+    // overlap scrollable transaction content.
+    appBar: const _TopBar(),
+    body: SafeArea(bottom: false, child: shell),
+    bottomNavigationBar: SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(Brand.lg, 0, Brand.lg, Brand.sm),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Add Expense is a dedicated full-width bar on Home only, so it never
+            // overlaps transaction content or the navigation (list clears it via
+            // PageBody's bottom padding).
+            if (shell.currentIndex == 0) ...[
+              _AddExpenseBar(onTap: () => context.push('/expenses/new')),
+              const SizedBox(height: Brand.sm),
+            ],
+            FloatingNav(shell: shell),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// Minimal transparent top bar: just a frosted circular settings button.
+/// Each screen supplies its own heading in content.
+class _TopBar extends StatelessWidget implements PreferredSizeWidget {
+  const _TopBar();
+  @override
+  Size get preferredSize => const Size.fromHeight(52);
+  @override
+  Widget build(BuildContext context) => AppBar(
+    toolbarHeight: 52,
+    automaticallyImplyLeading: false,
+    backgroundColor: Colors.transparent,
+    actions: [
+      Padding(
+        padding: const EdgeInsets.only(right: Brand.lg),
+        child: Material(
+          color: context.tokens.neutralCard,
+          shape: const CircleBorder(side: BorderSide(color: Color(0x14133020))),
+          clipBehavior: Clip.antiAlias,
+          child: IconButton(
+            tooltip: 'Settings',
+            onPressed: () => context.push('/settings'),
+            icon: const Icon(Icons.settings_outlined, size: 22),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+/// Full-width primary Add Expense bar (replaces the overlapping FAB).
+class _AddExpenseBar extends StatelessWidget {
+  const _AddExpenseBar({required this.onTap});
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: double.infinity,
+    child: FilledButton.icon(
+      onPressed: onTap,
+      style: FilledButton.styleFrom(
+        minimumSize: const Size.fromHeight(56),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Brand.xl),
+        ),
+      ),
+      icon: const Icon(Icons.add),
+      label: const Text('Add expense'),
+    ),
+  );
+}
+
+/// Floating, lightweight glass navigation surface with clear active states.
+class FloatingNav extends StatelessWidget {
+  const FloatingNav({super.key, required this.shell});
+  final StatefulNavigationShell shell;
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final solid =
+        MediaQuery.of(context).disableAnimations ||
+        MediaQuery.of(context).highContrast;
+    final nav = NavigationBar(
+      backgroundColor: Colors.transparent,
       selectedIndex: shell.currentIndex,
       onDestinationSelected: (i) => shell.goBranch(i),
       destinations: const [
@@ -245,45 +324,32 @@ class AppShell extends StatelessWidget {
           label: 'Budget',
         ),
       ],
-    ),
-  );
-}
-
-/// Compact branded header: transparent Coin Path symbol, wordmark, settings.
-class BrandHeader extends StatelessWidget implements PreferredSizeWidget {
-  const BrandHeader({super.key});
-  @override
-  Size get preferredSize => const Size.fromHeight(64);
-  @override
-  Widget build(BuildContext context) => AppBar(
-    titleSpacing: Brand.xl,
-    title: Row(
-      children: [
-        Image.asset(
-          'assets/01_coin_path_symbol_transparent_512w.png',
-          width: 34,
-          height: 34,
-          excludeFromSemantics: true,
-        ),
-        const SizedBox(width: Brand.md),
-        Flexible(
-          child: Text(
-            'Money Well Spent',
-            style: context.text.titleMedium,
-            overflow: TextOverflow.ellipsis,
+    );
+    final surface = DecoratedBox(
+      decoration: BoxDecoration(
+        color: t.neutralCard.withValues(alpha: solid ? 1 : .82),
+        borderRadius: BorderRadius.circular(Brand.section),
+        border: Border.all(color: t.cardBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A133020),
+            blurRadius: 20,
+            offset: Offset(0, 8),
           ),
-        ),
-      ],
-    ),
-    actions: [
-      IconButton(
-        tooltip: 'Settings',
-        onPressed: () => context.push('/settings'),
-        icon: const Icon(Icons.settings_outlined),
+        ],
       ),
-      const SizedBox(width: Brand.xs),
-    ],
-  );
+      child: nav,
+    );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(Brand.section),
+      child: solid
+          ? surface
+          : BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+              child: surface,
+            ),
+    );
+  }
 }
 
 class PageBody extends StatelessWidget {
@@ -295,7 +361,7 @@ class PageBody extends StatelessWidget {
     child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 760),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(Brand.xl, Brand.md, Brand.xl, 112),
+        padding: const EdgeInsets.fromLTRB(Brand.xl, Brand.md, Brand.xl, 96),
         children: [
           for (final child in children)
             Padding(

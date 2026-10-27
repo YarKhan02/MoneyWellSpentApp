@@ -50,9 +50,24 @@ Widget homeScreen(BuildContext context, LedgerSnapshot data) {
   final weekly = data.budgets.where((b) => b.period == 'week').firstOrNull;
   return PageBody(
     children: [
-      Text(
-        'A little clarity.\nA lot more possibility.',
-        style: context.text.headlineMedium,
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'MONEY WELL SPENT',
+            style: context.text.labelMedium?.copyWith(
+              color: Brand.forest,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: Brand.sm),
+          Text('A little clarity.', style: context.text.headlineMedium),
+          Text(
+            'A lot more possibility.',
+            style: context.text.headlineMedium?.copyWith(color: Brand.forest),
+          ),
+        ],
       ),
       _SpendingHero(
         data: data,
@@ -65,6 +80,8 @@ Widget homeScreen(BuildContext context, LedgerSnapshot data) {
           Expanded(
             child: MetricCard(
               label: 'Today',
+              icon: Icons.calendar_today_outlined,
+              iconColor: Brand.forest,
               value: Money(
                 data.total(
                   rangeFor(data, Period.day).start,
@@ -79,6 +96,8 @@ Widget homeScreen(BuildContext context, LedgerSnapshot data) {
           Expanded(
             child: MetricCard(
               label: 'This week',
+              icon: Icons.bar_chart_rounded,
+              iconColor: Brand.cherry,
               value: Money(
                 data.total(
                   rangeFor(data, Period.week).start,
@@ -97,19 +116,14 @@ Widget homeScreen(BuildContext context, LedgerSnapshot data) {
             ? null
             : TextButton(
                 onPressed: () => context.go('/activity'),
-                child: const Text('See all'),
+                child: const Text('View all'),
               ),
       ),
       if (data.expenses.isEmpty)
-        EmptyState(
-          title: 'Make room for the little things',
-          message:
-              'Add your first expense. Your spending stays on this device.',
-          action: FilledButton.icon(
-            onPressed: () => context.push('/expenses/new'),
-            icon: const Icon(Icons.add),
-            label: const Text('Add your first expense'),
-          ),
+        const EmptyState(
+          icon: Icons.receipt_long_outlined,
+          title: 'No expenses yet',
+          message: 'Your spending history will appear here.',
         )
       else
         AppCard(

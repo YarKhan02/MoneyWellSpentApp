@@ -9,6 +9,7 @@ abstract final class Brand {
   static const earth = Color(0xFF133020); // Tilled Earth
   static const hay = Color(0xFFF8EDD9); // Alabaster Hay
   static const cherry = Color(0xFFDD5C36); // Cherry Grove
+  static const ivory = Color(0xFFFFFCF5); // Warm Ivory — light card surfaces
   static const muted = Color(0xFF49614F); // secondary dark-green text
 
   // Spacing scale (4 → 48).
@@ -41,7 +42,7 @@ abstract final class Brand {
           surface: dark ? darkBg : hay,
           onSurface: dark ? hay : earth,
           surfaceContainerLowest: dark ? darkBg : hay,
-          surfaceContainer: dark ? darkCard : Colors.white,
+          surfaceContainer: dark ? darkCard : ivory,
           surfaceContainerHighest: dark ? darkRaised : const Color(0xFFFBF4E6),
           outlineVariant: dark ? darkRaised : const Color(0x22133020),
           error: dark ? const Color(0xFFFFB5A0) : const Color(0xFFA12D14),
@@ -63,7 +64,7 @@ abstract final class Brand {
             heroNested: Color(0xFF294638),
             onHero: hay,
             onHeroMuted: Color(0xFFBFD3C4),
-            neutralCard: Colors.white,
+            neutralCard: ivory,
             cardBorder: Color(0x14133020),
             track: Color(0x33327039),
             shadow: <BoxShadow>[
@@ -131,11 +132,12 @@ abstract final class Brand {
               ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: dark ? darkCard : Colors.white,
+        // Transparent — the floating glass container in AppShell provides the surface.
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        height: 68,
-        indicatorColor: dark ? darkRaised : forest.withValues(alpha: .14),
+        height: 60,
+        indicatorColor: dark ? darkRaised : forest.withValues(alpha: .16),
         iconTheme: WidgetStateProperty.resolveWith(
           (s) => IconThemeData(
             color: s.contains(WidgetState.selected) ? forest : scheme.onSurface,
@@ -145,7 +147,7 @@ abstract final class Brand {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: dark ? darkCard : Colors.white,
+        fillColor: dark ? darkCard : ivory,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(smallRadius),
           borderSide: BorderSide(color: scheme.outlineVariant),
@@ -377,9 +379,13 @@ class MetricCard extends StatelessWidget {
     super.key,
     required this.label,
     required this.value,
+    this.icon,
+    this.iconColor = Brand.forest,
     this.onTap,
   });
   final String label, value;
+  final IconData? icon;
+  final Color iconColor;
   final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) => AppCard(
@@ -389,6 +395,10 @@ class MetricCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (icon != null) ...[
+          Icon(icon, color: iconColor, size: 22),
+          const SizedBox(height: Brand.md),
+        ],
         Text(
           label,
           style: context.text.labelLarge?.copyWith(color: Brand.muted),
@@ -511,7 +521,7 @@ class EmptyState extends StatelessWidget {
             color: Brand.forest.withValues(alpha: .12),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.spa_outlined, size: 30, color: Brand.forest),
+          child: Icon(icon, size: 30, color: Brand.forest),
         ),
         const SizedBox(height: Brand.lg),
         Text(
@@ -520,7 +530,11 @@ class EmptyState extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: Brand.sm),
-        Text(message, textAlign: TextAlign.center),
+        Text(
+          message,
+          style: context.text.bodyMedium?.copyWith(color: Brand.muted),
+          textAlign: TextAlign.center,
+        ),
         if (action != null) ...[const SizedBox(height: Brand.xl), action!],
       ],
     ),

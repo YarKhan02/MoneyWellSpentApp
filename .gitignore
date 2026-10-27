@@ -140,3 +140,5 @@ fastlane/test_output/
 # Claude Code / Local AI Tools
 .claude/settings.local.json
 .graphify-out/
+
+moneywellspent-a3a9a0034235.json

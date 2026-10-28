@@ -1,5 +1,5 @@
 
-name: Android Production Release
+name: Android Closed Testing Release
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   release:
-    name: Deploy to Google Play Production
+    name: Deploy to Google Play Closed Testing
     runs-on: ubuntu-latest
     environment: production
 
@@ -33,9 +33,6 @@ jobs:
         run: flutter test
 
       - name: Restore signing config
-        # build.gradle.kts reads the release signingConfig from android/key.properties
-        # (storeFile is resolved relative to android/app). Without this file the release
-        # build silently falls back to the debug key and Play rejects the upload.
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -52,10 +49,6 @@ jobs:
 
       - name: Derive version from the tag
         id: version
-        # versionName = the tag without its leading "v" (v1.2.3 -> 1.2.3).
-        # versionCode = the monotonic GitHub run number, so it always increases.
-        # Nothing is read from pubspec.yaml -- to release, you only push a tag;
-        # you never edit the version in the repo.
         run: |
           echo "name=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
           echo "code=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
@@ -67,14 +60,11 @@ jobs:
             --build-name="${{ steps.version.outputs.name }}" \
             --build-number="${{ steps.version.outputs.code }}"
 
-      - name: Upload to Google Play (Production)
+      - name: Upload to Google Play (Closed testing)
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.shoukanlabs.moneywellspent
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
-          track: production
+          track: alpha
           status: completed
-          # Full 100% rollout. For a staged rollout instead, use:
-          #   status: inProgress
-          #   userFraction: 0.2

@@ -147,8 +147,7 @@ class _AppState extends ConsumerState<MoneyWellSpentApp>
     return MaterialApp.router(
       title: 'Money Well Spent',
       debugShowCheckedModeBanner: false,
-      theme: Brand.theme(Brightness.light),
-      darkTheme: Brand.theme(Brightness.dark),
+      theme: Brand.theme(),
       routerConfig: router,
       builder: (context, child) => data.when(
         loading: () =>

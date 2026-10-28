@@ -22,59 +22,42 @@ abstract final class Brand {
   static const heroRadius = 28.0, cardRadius = 22.0, smallRadius = 16.0;
   static const buttonRadius = 16.0;
 
-  static ThemeData theme(Brightness brightness) {
-    final dark = brightness == Brightness.dark;
-    // Dark hierarchy keeps depth instead of a single flat green.
-    const darkBg = Color(0xFF10281C);
-    const darkCard = Color(0xFF1A3828);
-    const darkRaised = Color(0xFF294638);
-
+  static ThemeData theme() {
     final scheme =
         ColorScheme.fromSeed(
           seedColor: forest,
-          brightness: brightness,
+          brightness: Brightness.light,
         ).copyWith(
           primary: forest,
           onPrimary: Colors.white,
           secondary: wheat,
           onSecondary: earth,
           tertiary: cherry,
-          surface: dark ? darkBg : hay,
-          onSurface: dark ? hay : earth,
-          surfaceContainerLowest: dark ? darkBg : hay,
-          surfaceContainer: dark ? darkCard : ivory,
-          surfaceContainerHighest: dark ? darkRaised : const Color(0xFFFBF4E6),
-          outlineVariant: dark ? darkRaised : const Color(0x22133020),
-          error: dark ? const Color(0xFFFFB5A0) : const Color(0xFFA12D14),
+          surface: hay,
+          onSurface: earth,
+          surfaceContainerLowest: hay,
+          surfaceContainer: ivory,
+          surfaceContainerHighest: const Color(0xFFFBF4E6),
+          outlineVariant: const Color(0x22133020),
+          error: const Color(0xFFA12D14),
         );
 
-    final tokens = dark
-        ? const AppTokens(
-            hero: darkCard,
-            heroNested: darkRaised,
-            onHero: hay,
-            onHeroMuted: Color(0xFFBFD3C4),
-            neutralCard: darkCard,
-            cardBorder: darkRaised,
-            track: Color(0x33F0BE49),
-            shadow: <BoxShadow>[],
-          )
-        : const AppTokens(
-            hero: earth,
-            heroNested: Color(0xFF294638),
-            onHero: hay,
-            onHeroMuted: Color(0xFFBFD3C4),
-            neutralCard: ivory,
-            cardBorder: Color(0x14133020),
-            track: Color(0x33327039),
-            shadow: <BoxShadow>[
-              BoxShadow(
-                color: Color(0x14133020),
-                blurRadius: 24,
-                offset: Offset(0, 10),
-              ),
-            ],
-          );
+    const tokens = AppTokens(
+      hero: earth,
+      heroNested: Color(0xFF294638),
+      onHero: hay,
+      onHeroMuted: Color(0xFFBFD3C4),
+      neutralCard: ivory,
+      cardBorder: Color(0x14133020),
+      track: Color(0x33327039),
+      shadow: <BoxShadow>[
+        BoxShadow(
+          color: Color(0x14133020),
+          blurRadius: 24,
+          offset: Offset(0, 10),
+        ),
+      ],
+    );
 
     final onSurface = scheme.onSurface;
     final textTheme = TextTheme(
@@ -121,15 +104,10 @@ abstract final class Brand {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        systemOverlayStyle: dark
-            ? SystemUiOverlayStyle.light.copyWith(
-                statusBarColor: Colors.transparent,
-                systemNavigationBarColor: darkBg,
-              )
-            : SystemUiOverlayStyle.dark.copyWith(
-                statusBarColor: Colors.transparent,
-                systemNavigationBarColor: hay,
-              ),
+        systemOverlayStyle: SystemUiOverlayStyle.dark.copyWith(
+          statusBarColor: Colors.transparent,
+          systemNavigationBarColor: hay,
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         // Transparent — the floating glass container in AppShell provides the surface.
@@ -137,7 +115,7 @@ abstract final class Brand {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         height: 60,
-        indicatorColor: dark ? darkRaised : forest.withValues(alpha: .16),
+        indicatorColor: forest.withValues(alpha: .16),
         iconTheme: WidgetStateProperty.resolveWith(
           (s) => IconThemeData(
             color: s.contains(WidgetState.selected) ? forest : scheme.onSurface,
@@ -147,7 +125,7 @@ abstract final class Brand {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: dark ? darkCard : ivory,
+        fillColor: ivory,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(smallRadius),
           borderSide: BorderSide(color: scheme.outlineVariant),
@@ -178,7 +156,7 @@ abstract final class Brand {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: dark ? wheat : forest,
+          foregroundColor: forest,
           minimumSize: const Size(48, 52),
           side: BorderSide(color: scheme.outlineVariant),
           shape: RoundedRectangleBorder(
@@ -187,10 +165,10 @@ abstract final class Brand {
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: dark ? wheat : forest),
+        style: TextButton.styleFrom(foregroundColor: forest),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: dark ? darkCard : Colors.white,
+        backgroundColor: Colors.white,
         selectedColor: forest,
         side: BorderSide(color: scheme.outlineVariant),
         shape: const StadiumBorder(),
@@ -200,7 +178,7 @@ abstract final class Brand {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: dark ? darkCard : Colors.white,
+        color: Colors.white,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(cardRadius),

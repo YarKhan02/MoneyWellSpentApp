@@ -12,7 +12,8 @@ void main() {
     await tester.scrollUntilVisible(find.text('Continue without account'), 200);
     await tester.tap(find.text('Continue without account'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(DropdownButtonFormField<String>).first);
+    // Currency is chosen from a bottom sheet, not a dropdown menu.
+    await tester.tap(find.text('Book currency'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('USD').last);
     await tester.pumpAndSettle();

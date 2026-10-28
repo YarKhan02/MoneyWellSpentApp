@@ -36,6 +36,20 @@ Future<void> scrollTo(WidgetTester tester, Finder target, double delta) async {
   await tester.pumpAndSettle();
 }
 
+
+/// Chooses [option] from the selection sheet opened by the field labelled
+/// [fieldLabel]. The app no longer uses dropdown menus anywhere.
+Future<void> chooseFromSheet(
+  WidgetTester tester,
+  String fieldLabel,
+  String option,
+) async {
+  await tester.tap(find.text(fieldLabel));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(option).last);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   setUpAll(tz.initializeTimeZones);
   testWidgets('first run saves explicit preferences and reaches Home', (
@@ -53,10 +67,7 @@ void main() {
     await scrollTo(tester, find.text('Continue without account'), 250);
     await tester.tap(find.text('Continue without account'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(DropdownButtonFormField<String>).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('USD').last);
-    await tester.pumpAndSettle();
+    await chooseFromSheet(tester, 'Book currency', 'USD');
     await tester.enterText(
       find.widgetWithText(TextField, 'Timezone (IANA)'),
       'UTC',

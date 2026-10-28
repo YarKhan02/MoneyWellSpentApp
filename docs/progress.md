@@ -23,6 +23,179 @@ Read parent AGENTS.md, CLAUDE.md and all six specifications before implementatio
 - Full UI tests verify onboarding and create → edit → delete → Undo against the actual local repository. Home smoke test at 200% text scaling passes.
 - `docs/previews/home.png` is an actual Flutter rendering using an explicitly labeled test ledger. Production starts empty.
 
+## Structural refactor — 2026-10-29 (presentation + ledger layering)
+
+Behaviour-preserving reorganisation. No feature, copy, layout, schema or SQL
+semantics changed; **Phase 1 only — no backend scaffolding was added.**
+
+**Why.** Six files carried most of the app: `features/screens/dashboard.dart`
+(1211 lines, four screens), `settings.dart` (810, three screens),
+`forms.dart` (592, three screens), `core/design/theme.dart` (533, tokens +
+eight widgets), `features/ledger/repository.dart` (453, read + write + alerts
++ export) and `app/app.dart` (374, root + router + shell + layout). Every
+screen imported `app/app.dart` for `PageBody`/`LedgerView` while `app.dart`
+imported every screen — a circular dependency that made the layering
+meaningless.
+
+**What changed.**
+- `lib/` went from 12 files / 4,317 lines to 75 files / 5,432 lines (the
+  growth is doc comments and the dedicated test fixtures; the largest file is
+  now 268 lines, down from 1,211).
+- **Design split**: `core/design/tokens.dart` (`Brand`, `AppTokens`, the
+  `context.tokens/text/scheme` extension), `theme.dart` (`buildAppTheme()`
+  only — replaces `Brand.theme()`), `category_style.dart`,
+  `chart_palette.dart`.
+- **`shared/widgets/`**: `AppCard`, `HeroCard`, `GlassCard`/`NestedGlassCard`,
+  `MetricCard`, `SectionHeader`, `CategoryAvatar`, `EmptyState`,
+  `ProgressBar`, `Pill`, `PageBody`, and a new `MoneyField` that de-duplicates
+  the borderless amount input previously copied between the expense and
+  budget forms. `shared/dialogs.dart` and `shared/errors.dart` hold `confirm`
+  and `friendlyError`. Moving `PageBody` here broke the import cycle.
+- **Feature-first screens**: `features/{home,activity,insights,budget,
+  expenses,settings,categories,onboarding}/`, one screen per file with a
+  `widgets/` subfolder each. The function-style screens (`homeScreen`,
+  `budgetScreen`, `settingsScreen`, `categoriesScreen`, `newExpenseScreen`)
+  are now classes, consistent with the rest.
+- **Testable domain logic** pulled out of `build()`:
+  `features/ledger/budget_status.dart` (`BudgetStatus` — spent, remaining,
+  fraction, percentages, over-budget; previously recomputed inline in three
+  places), `category_share.dart` (`CategoryShare.within`),
+  `spending_comparison.dart`, and `formatting.dart` (a `ProfileCalendar`
+  extension so every date and period boundary derives from the book's own
+  timezone and week start).
+- **Ledger split**: `repository.dart` is now a facade owning only the
+  transaction boundary and change stream. Reads go through
+  `ledger_reader.dart` + `mappers.dart`, writes through
+  `writers/{profile,expense,category,budget}_writer.dart`, milestones through
+  `budget_alerts.dart`, export through `csv_export.dart` (now a pure
+  `buildExpenseCsv(LedgerSnapshot)`), queries through `sql_access.dart`. The
+  public `LedgerRepository` API is unchanged, so `repository_test.dart` was
+  not touched.
+- **App layer**: `app/app.dart` (root + lifecycle), `router.dart`, `shell.dart`
+  (`AppShell`, `AppTopBar`, `AddExpenseBar`, `FloatingNav`), `ledger_view.dart`.
+
+**New tests** (4 files, 24 cases) covering the extracted logic:
+`budget_status_test.dart`, `category_share_test.dart`,
+`spending_comparison_test.dart`, `csv_export_test.dart`, with shared builders
+in `test/ledger_fixtures.dart`.
+
+**Verification — NOT yet run.** The refactor was performed in an environment
+with no Flutter SDK, so `dart format`, `flutter analyze` and `flutter test`
+have **not** been executed against these changes and no claim is made that
+they pass. A static import/symbol checker reported 0 unresolved symbols and 0
+missing imports across all 75 files. The gates below must be run locally
+before this is considered done:
+
+```
+dart format lib test integration_test
+flutter analyze
+flutter test
+```
+
+## Responsive UI refinement — 2026-10-29
+
+Implements the 13-point UI brief. No financial calculation, persistence
+schema, currency rule, export behaviour or other business rule was changed,
+and **no backend work was added — still Phase 1.**
+
+**Shared causes fixed first (§1–§3).** There was no global scaling of any
+kind — no `Transform.scale`, no text-scale override, no whole-screen fitting
+widget — so the oversized interface came from the token values themselves
+and was fixed centrally:
+
+| Token | Was | Now |
+| --- | --- | --- |
+| card / hero / nested padding | 24 everywhere | 18 / 20 / 16 |
+| `cardRadius` / `heroRadius` | 22 / 28 | 18 / 20, plus `sheetRadius` 24, `inputRadius` and `buttonRadius` 14 |
+| `displaySmall` (primary amounts) | 36 | 32 |
+| `titleLarge` / `titleMedium` | 21 / 18 | 19 / 16 |
+| `bodyLarge` | 16 | 15 |
+| avatar | 44 | 38 (34 compact) |
+| primary button height | 54 | 50 |
+| card shadow | `0x14`, blur 24, y+10 | `0x0D`, blur 10, y+2, plus a `divider` token |
+| `PageBody` bottom padding | 96 on every screen | 24 |
+
+That 96 was not preventing an overlap — `Scaffold` already lays the body
+above `bottomNavigationBar` and `extendBody` is off — it was simply a dead
+band at the end of every list, including routes with no bars at all.
+
+**Structural changes.**
+- The shell's app bar is gone. Each tab opens with a compact `AppHeader`
+  carrying the title and the settings action, saving a bar of chrome per
+  screen. `SettingsAction` lives in `app/shell.dart`.
+- Navigation is a solid docked surface; its height is derived from the
+  viewer's text scale (`AppNavigationBar.heightFor`) and clamped at 96, so
+  labels cannot clip at 200% text.
+- New shared components: `AppHeader`, `ListSurface` (one card, hairline
+  dividers, rows that own their padding so ink fills the row),
+  `ResponsivePair` (side by side or stacked from real constraints, not a
+  device breakpoint), `AmountText`, and `LayoutQueries` on `BuildContext`.
+
+**Amounts.** `MoneyDisplay` (`core/money/money_display.dart`) adds grouping
+separators for display only — `Money.decimal` is untouched, so form
+round-tripping, `Money.parse` and the CSV export are unaffected. Grouping is
+done on the digit string, never a double. `AmountText` sets the currency
+code smaller than the figure and lets a long amount **wrap** rather than
+shrink or truncate; every `FittedBox(scaleDown)` around a financial value is
+gone. This is what fixes the clipped `PKR 1,250.00 / …` on Home.
+
+**Selection pattern (§6).** All four `DropdownButtonFormField`s are
+replaced by one pattern in `shared/selection/`: a rounded modal bottom sheet
+with a title, selected state, accessible rows, scrolling, keyboard-aware
+padding, search above 12 options, and no change on dismiss. `SelectionField`
+renders as an `InputDecorator` so it matches neighbouring text fields.
+Category accent is now labeled colour swatches with a check indicator —
+readable names, same stored `forest` / `wheat` / `cherry` values.
+
+**Per screen.** Home: marketing headline dropped, one hero with
+period → amount → budget hierarchy, the two nested budget cards replaced by
+a `BudgetStrip` with a slim bar and the full spent-of-limit relationship,
+metrics relabelled "Spent today" / "Spent this week" and stackable, recent
+expenses in one `ListSurface`. Activity: compact header, neutral summary
+instead of the dark pill, wrapping filter chips with an obvious active state
+and a reset, small day headings, grouped compact rows (~64pt at normal
+text). Insights: shortened intro, compact segmented control, contextual
+period labels ("October 2026", exact range kept in the tooltip and
+semantics), width-derived donut (150–220pt, smaller on short viewports) with
+no total repeated in its centre. Budget: neutral cards, compact `tune`
+action instead of the full-width button, status in words
+("left to spend" / "exactly on budget" / "over your limit"). Settings:
+intro removed, locked currency reads as a value with its reason, unsaved
+changes are stated, erase moved to its own group. Categories: compact rows
+in a `ListSurface`, app-bar add action, and a keyboard-aware editor sheet
+with an adaptive icon grid.
+
+**Glassmorphism.** Replacing Home's nested cards left `GlassCard` unused,
+which would have made the "Opaque surfaces" preference a no-op. The widget
+was deleted and the frosting moved to the one surface with something behind
+it — the add-expense sheet over the ledger — still switched off by the
+preference, by reduced motion and by high contrast.
+
+**Tests.** `test/responsive_harness.dart` plus
+`test/responsive_layout_test.dart` and `test/keyboard_insets_test.dart`
+cover the six viewports (320×568 … 844×390 landscape) at 1.0 / 1.3 / 2.0
+text scale, asserting no render overflow and no horizontal scrolling, on
+populated and empty ledgers; plus long notes with large amounts, the
+overspent state, last-row reachability, and the add-expense and category
+sheets with a simulated keyboard. `ui_flow_test.dart` and
+`integration_test/offline_flow_test.dart` were updated for the currency
+sheet replacing the dropdown.
+
+**Verification — NOT run.** Still no Flutter SDK in this environment:
+`dart format`, `flutter analyze` and `flutter test` have not been executed
+against any of this, and no visual check was possible. The static
+import/symbol checker reports 0 unresolved symbols and 0 missing imports
+across 83 files. The screenshots the brief refers to were not attached, so
+the per-screen judgements follow the brief's written targets and
+`docs/04-DESIGN-BRIEF.md` rather than the current renders. Gates to run
+locally:
+
+```
+dart format lib test integration_test
+flutter analyze
+flutter test
+```
+
 ## Milestone records
 
 Local issues 001–004 are in `docs/issues/`, indexed in `docs/backlog.md`. They record achieved automated implementation milestones, not unverified device release gates. No remote GitHub issues or CI runs are claimed.

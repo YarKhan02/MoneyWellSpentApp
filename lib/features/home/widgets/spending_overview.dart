@@ -49,7 +49,11 @@ class SpendingOverview extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: Brand.sm),
-              Pill(label: profile.periodLabel(month, Period.month)),
+              // Flexible so a long month name at large text shrinks the
+              // pill instead of pushing the row past its width.
+              Flexible(
+                child: Pill(label: profile.periodLabel(month, Period.month)),
+              ),
             ],
           ),
           const SizedBox(height: Brand.xs),

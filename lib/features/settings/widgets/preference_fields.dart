@@ -141,8 +141,7 @@ class WeekStartField extends StatelessWidget {
     value: value,
     enabled: enabled,
     sheetTitle: 'Week starts on',
-    sheetDescription:
-        'Sets where weekly totals and the weekly budget begin.',
+    sheetDescription: 'Sets where weekly totals and the weekly budget begin.',
     options: [
       for (var i = 1; i <= dayNames.length; i++)
         SelectionOption(value: i, label: dayNames[i - 1]),

@@ -8,6 +8,7 @@ import '../features/onboarding/onboarding_screen.dart';
 import '../shared/widgets/widgets.dart';
 import 'providers.dart';
 import 'router.dart';
+import 'toast_clearing_observer.dart';
 
 /// Root of the app.
 ///
@@ -26,7 +27,12 @@ class MoneyWellSpentApp extends ConsumerStatefulWidget {
 
 class _MoneyWellSpentAppState extends ConsumerState<MoneyWellSpentApp>
     with WidgetsBindingObserver {
-  late final GoRouter _router = buildRouter();
+  /// Owned here so the route observer can reach the messenger without a
+  /// BuildContext of its own.
+  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
+  late final GoRouter _router = buildRouter(
+    observers: [ToastClearingObserver(_messengerKey)],
+  );
   Timer? _timer;
 
   @override
@@ -68,14 +74,14 @@ class _MoneyWellSpentAppState extends ConsumerState<MoneyWellSpentApp>
     return MaterialApp.router(
       title: 'Money Well Spent',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: _messengerKey,
       theme: buildAppTheme(),
       routerConfig: _router,
       builder: (context, child) => data.when(
         loading: () =>
             const Scaffold(body: Center(child: CircularProgressIndicator())),
-        error: (_, _) => _StorageError(
-          onRetry: () => ref.invalidate(ledgerProvider),
-        ),
+        error: (_, _) =>
+            _StorageError(onRetry: () => ref.invalidate(ledgerProvider)),
         data: (snapshot) => snapshot.profile == null
             ? _onboarding(snapshot)
             : _withMotionPreference(context, snapshot, child!),

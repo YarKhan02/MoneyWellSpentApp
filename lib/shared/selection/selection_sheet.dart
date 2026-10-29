@@ -71,9 +71,7 @@ class _SelectionSheetState<T> extends State<_SelectionSheet<T>> {
     setState(
       () => _visible = needle.isEmpty
           ? widget.options
-          : widget.options
-                .where((o) => o.searchText.contains(needle))
-                .toList(),
+          : widget.options.where((o) => o.searchText.contains(needle)).toList(),
     );
   }
 
@@ -84,9 +82,7 @@ class _SelectionSheetState<T> extends State<_SelectionSheet<T>> {
     final maxHeight = MediaQuery.sizeOf(context).height * .75;
     return Padding(
       // Lifts the sheet above the keyboard when the search field has focus.
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.viewInsetsOf(context).bottom,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxHeight),
         child: Column(
@@ -227,7 +223,11 @@ class _OptionRow<T> extends StatelessWidget {
             ),
             if (isSelected) ...[
               const SizedBox(width: Brand.sm),
-              const Icon(Icons.check, color: Brand.forest, size: Brand.iconSize),
+              const Icon(
+                Icons.check,
+                color: Brand.forest,
+                size: Brand.iconSize,
+              ),
             ],
           ],
         ),

@@ -118,11 +118,10 @@ class BudgetCard extends StatelessWidget {
           ),
           const SizedBox(height: Brand.md),
           ProgressBar(
-            fraction: status.fraction,
+            percent: status.percentUsed,
             color: accent,
             track: context.tokens.track,
             label: '${status.title} used',
-            value: status.percentUsedLabel,
             height: 8,
           ),
           const SizedBox(height: Brand.sm),

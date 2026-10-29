@@ -48,7 +48,10 @@ class ExpenseDetailScreen extends ConsumerWidget {
                       foregroundColor: Brand.cherry,
                       side: const BorderSide(color: Brand.cherry),
                     ),
-                    icon: const Icon(Icons.delete_outline, size: Brand.iconSize),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      size: Brand.iconSize,
+                    ),
                     label: const Text('Delete expense'),
                     onPressed: () => _delete(context, ref),
                   ),
@@ -87,7 +90,9 @@ class ExpenseDetailScreen extends ConsumerWidget {
                 await repository.undoDelete(id);
               } catch (_) {
                 messenger.showSnackBar(
-                  const SnackBar(content: Text('Could not undo. Please retry.')),
+                  const SnackBar(
+                    content: Text('Could not undo. Please retry.'),
+                  ),
                 );
               }
             },

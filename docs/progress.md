@@ -181,20 +181,45 @@ sheets with a simulated keyboard. `ui_flow_test.dart` and
 `integration_test/offline_flow_test.dart` were updated for the currency
 sheet replacing the dropdown.
 
-**Verification — NOT run.** Still no Flutter SDK in this environment:
-`dart format`, `flutter analyze` and `flutter test` have not been executed
-against any of this, and no visual check was possible. The static
-import/symbol checker reports 0 unresolved symbols and 0 missing imports
-across 83 files. The screenshots the brief refers to were not attached, so
-the per-screen judgements follow the brief's written targets and
-`docs/04-DESIGN-BRIEF.md` rather than the current renders. Gates to run
-locally:
+**Verification.** Run by the user on macOS; this environment has no Flutter
+SDK. `dart format` and `flutter analyze` pass and the app compiles. First
+`flutter test` run: 54 passed, 25 failed — all five root causes found and
+fixed, and the second run cleared the whole viewport matrix (6 sizes × 3
+text scales, populated and empty).
 
-```
-dart format lib test integration_test
-flutter analyze
-flutter test
-```
+Defects the new tests caught, all genuine:
+
+1. **Progress bar semantics crash** (21 failures). Flutter asserts a
+   percentage announced to assistive technology is 0–100%, and an
+   over-budget period legitimately reports 150%. `ProgressBar` now takes a
+   raw `percent` and clamps the fill and the spoken value itself, so no
+   call site can reintroduce it; the true figure stays in visible text.
+2. **`BudgetStrip` header overflowed** by up to 212px at every width — an
+   unflexed status `Text` beside an `Expanded` label. Now a `Wrap`.
+3. **`SpendingOverview` overflowed** 8px at 2.0× — the period `Pill` was
+   not flexible, and did not ellipsise.
+4. **A floating toast covered a primary action.** "Expense saved" is raised
+   after the form pops, so it landed on the detail screen's Delete button
+   and swallowed the tap. The toast is now shown only for a new expense —
+   after an edit the detail screen already shows the new figure — and a
+   `ToastClearingObserver` on the router dismisses any stale toast on a
+   route change.
+5. **Lazy page bodies hid off-screen controls.** Switching `PageBody` to an
+   `itemBuilder` meant a control below the fold did not exist in the tree
+   at all. Reverted to an explicit child list, and the doc comment now
+   states plainly that a `ListView` still lays out only what is near the
+   viewport.
+
+A sixth issue was a fault in the test rather than the app: the last-row
+reachability check called `scrollUntilVisible` with a finder that already
+matched the tiles built on first layout, so it never scrolled and then
+measured a tile below the fold against the full viewport height. It now
+jumps to `maxScrollExtent` and asserts the final row clears the top of the
+docked navigation, which is the claim that matters.
+
+No emulator or device check has been done, and the screenshots the brief
+referred to were never supplied, so visual balance still follows the brief's
+written targets rather than observed renders.
 
 ## Milestone records
 

@@ -30,7 +30,11 @@ class ResponsivePair extends StatelessWidget {
       if (!fits) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [first, SizedBox(height: gap), second],
+          children: [
+            first,
+            SizedBox(height: gap),
+            second,
+          ],
         );
       }
       // IntrinsicHeight so two cards of different content still match.

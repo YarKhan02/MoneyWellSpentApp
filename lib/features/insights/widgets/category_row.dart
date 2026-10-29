@@ -6,11 +6,7 @@ import '../../ledger/category_share.dart';
 /// One category's line in the insights breakdown: avatar, name, amount and
 /// a share bar.
 class CategoryRow extends StatelessWidget {
-  const CategoryRow({
-    super.key,
-    required this.share,
-    required this.chartColor,
-  });
+  const CategoryRow({super.key, required this.share, required this.chartColor});
   final CategoryShare share;
   final Color chartColor;
 
@@ -53,20 +49,17 @@ class CategoryRow extends StatelessWidget {
               children: [
                 Expanded(
                   child: ProgressBar(
-                    fraction: share.fraction,
+                    percent: share.fraction * 100,
                     color: chartColor,
                     track: context.tokens.track,
                     label: '${share.label} share',
-                    value: share.percentLabel,
                     height: 8,
                   ),
                 ),
                 const SizedBox(width: Brand.sm),
                 Text(
                   share.percentLabel,
-                  style: context.text.labelMedium?.copyWith(
-                    color: Brand.muted,
-                  ),
+                  style: context.text.labelMedium?.copyWith(color: Brand.muted),
                 ),
               ],
             ),

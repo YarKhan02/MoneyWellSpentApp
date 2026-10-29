@@ -137,23 +137,24 @@ ThemeData buildAppTheme() {
   );
 }
 
-ColorScheme _colorScheme() => ColorScheme.fromSeed(
-  seedColor: Brand.forest,
-  brightness: Brightness.light,
-).copyWith(
-  primary: Brand.forest,
-  onPrimary: Colors.white,
-  secondary: Brand.wheat,
-  onSecondary: Brand.earth,
-  tertiary: Brand.cherry,
-  surface: Brand.hay,
-  onSurface: Brand.earth,
-  surfaceContainerLowest: Brand.hay,
-  surfaceContainer: Brand.ivory,
-  surfaceContainerHighest: const Color(0xFFFBF4E6),
-  outlineVariant: const Color(0x22133020),
-  error: const Color(0xFFA12D14),
-);
+ColorScheme _colorScheme() =>
+    ColorScheme.fromSeed(
+      seedColor: Brand.forest,
+      brightness: Brightness.light,
+    ).copyWith(
+      primary: Brand.forest,
+      onPrimary: Colors.white,
+      secondary: Brand.wheat,
+      onSecondary: Brand.earth,
+      tertiary: Brand.cherry,
+      surface: Brand.hay,
+      onSurface: Brand.earth,
+      surfaceContainerLowest: Brand.hay,
+      surfaceContainer: Brand.ivory,
+      surfaceContainerHighest: const Color(0xFFFBF4E6),
+      outlineVariant: const Color(0x22133020),
+      error: const Color(0xFFA12D14),
+    );
 
 OutlineInputBorder _inputBorder(Color color, {double width = 1}) =>
     OutlineInputBorder(
@@ -169,6 +170,7 @@ TextTheme _textTheme(Color onSurface) => TextTheme(
     height: 1.05,
     fontFeatures: [FontFeature.tabularFigures()],
   ),
+
   /// Onboarding headline only.
   headlineLarge: const TextStyle(
     fontSize: 30,
@@ -176,11 +178,14 @@ TextTheme _textTheme(Color onSurface) => TextTheme(
     height: 1.1,
     fontFeatures: [FontFeature.tabularFigures()],
   ),
+
   /// Page title.
   headlineMedium: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
   headlineSmall: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+
   /// Section heading.
   titleLarge: const TextStyle(fontSize: 19, fontWeight: FontWeight.w600),
+
   /// Card title, list row title, transaction amount.
   titleMedium: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
   bodyLarge: const TextStyle(fontSize: 15, height: 1.4),

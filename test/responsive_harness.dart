@@ -106,6 +106,23 @@ void expectNoOverflow(WidgetTester tester, String context) {
   expect(error, isNull, reason: 'Layout error in $context: $error');
 }
 
+/// Scrolls [target] into view inside the most recently pushed scrolling
+/// page, rather than whichever `Scrollable` happens to come first in the
+/// tree — with a sheet open, the first one is the page behind it.
+Future<void> scrollToInTopSheet(WidgetTester tester, Finder target) async {
+  await tester.scrollUntilVisible(
+    target,
+    200,
+    scrollable: find
+        .descendant(
+          of: find.byType(ListView).last,
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await tester.pumpAndSettle();
+}
+
 /// Moves to a tab by its navigation label and settles.
 Future<void> openTab(WidgetTester tester, String label) async {
   await tester.tap(find.text(label).last);

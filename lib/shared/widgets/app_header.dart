@@ -5,12 +5,7 @@ import '../../core/design/tokens.dart';
 /// all on one row. Replaces a separate app bar on the shell's four tabs, so
 /// each screen starts with content rather than 52 logical pixels of chrome.
 class AppHeader extends StatelessWidget {
-  const AppHeader({
-    super.key,
-    required this.title,
-    this.subtitle,
-    this.action,
-  });
+  const AppHeader({super.key, required this.title, this.subtitle, this.action});
 
   final String title;
 

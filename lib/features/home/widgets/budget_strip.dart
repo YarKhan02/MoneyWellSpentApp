@@ -22,21 +22,24 @@ class BudgetStrip extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
+        // A Wrap, not a Row: "Over by PKR 1,250.00" beside "Weekly budget"
+        // does not fit on a narrow phone or at large text, and the two move
+        // onto separate lines rather than overflowing.
+        Wrap(
+          spacing: Brand.sm,
+          runSpacing: Brand.xs,
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Expanded(
-              child: Text(
-                'Weekly budget',
-                style: context.text.labelLarge?.copyWith(color: Brand.hay),
-              ),
+            Text(
+              'Weekly budget',
+              style: context.text.labelLarge?.copyWith(color: Brand.hay),
             ),
-            const SizedBox(width: Brand.sm),
             // Status is carried by words, not only by the bar's colour.
             Text(
               status.over
                   ? 'Over by ${status.remainingMoney.display}'
                   : '${status.remainingMoney.display} left',
-              textAlign: TextAlign.end,
               style: context.text.labelLarge?.copyWith(
                 color: status.over ? Brand.cherry : Brand.wheat,
               ),
@@ -45,11 +48,10 @@ class BudgetStrip extends StatelessWidget {
         ),
         const SizedBox(height: Brand.sm),
         ProgressBar(
-          fraction: status.fraction,
+          percent: status.percentUsed,
           color: status.over ? Brand.cherry : Brand.wheat,
           track: Colors.white.withValues(alpha: .16),
           label: 'Weekly budget used',
-          value: status.percentUsedLabel,
         ),
         const SizedBox(height: Brand.sm),
         Text(

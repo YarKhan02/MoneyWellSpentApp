@@ -29,16 +29,12 @@ void main() {
     await tester.pump();
     expectNoOverflow(tester, 'add-expense sheet with the keyboard open');
 
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Amount'),
-      '12.34',
-    );
+    await tester.enterText(find.widgetWithText(TextField, 'Amount'), '12.34');
     await tester.pumpAndSettle();
 
     // Save must be reachable by scrolling the sheet, not stranded under the
     // keyboard.
-    await tester.scrollUntilVisible(find.text('Save expense'), 200);
-    await tester.pumpAndSettle();
+    await scrollToInTopSheet(tester, find.text('Save expense'));
     expect(find.text('Save expense'), findsOneWidget);
     expectNoOverflow(tester, 'add-expense sheet scrolled to Save');
   });
@@ -59,7 +55,7 @@ void main() {
     await tester.pumpAndSettle();
     // No category chosen yet, so saving must report that rather than fail
     // silently.
-    await tester.scrollUntilVisible(find.text('Save expense'), 200);
+    await scrollToInTopSheet(tester, find.text('Save expense'));
     await tester.tap(find.text('Save expense'));
     await tester.pumpAndSettle();
 
@@ -76,7 +72,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Settings'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Manage categories'), 200);
+    await scrollToInTopSheet(tester, find.text('Manage categories'));
     await tester.tap(find.text('Manage categories'));
     await tester.pumpAndSettle();
 

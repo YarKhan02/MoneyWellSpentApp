@@ -13,11 +13,7 @@ import '../ledger/models.dart';
 /// Set or remove the cap for one period. Removing a cap never touches the
 /// expenses recorded against it.
 class BudgetFormScreen extends ConsumerStatefulWidget {
-  const BudgetFormScreen({
-    super.key,
-    required this.data,
-    required this.period,
-  });
+  const BudgetFormScreen({super.key, required this.data, required this.period});
   final LedgerSnapshot data;
 
   /// `week` or `month`.

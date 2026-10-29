@@ -22,7 +22,10 @@ extension ProfileCalendar on Profile {
   /// The period immediately before the one containing [anchor].
   CalendarRange previousRange(Period period, [DateTime? anchor]) {
     final current = range(period, anchor);
-    return range(period, current.start.subtract(const Duration(microseconds: 1)));
+    return range(
+      period,
+      current.start.subtract(const Duration(microseconds: 1)),
+    );
   }
 
   /// `Mon, 4 Mar 2026`, or `4 Mar 2026 · 14:30` with [time].

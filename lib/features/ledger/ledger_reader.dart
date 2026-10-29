@@ -39,8 +39,7 @@ class LedgerReader {
     'SELECT * FROM expenses WHERE deleted_at_utc IS NULL ORDER BY occurred_at_utc DESC, id DESC',
   )).map(expenseFromRow).toList();
 
-  Future<List<Budget>> _budgets() async =>
-      (await db.rows('SELECT * FROM budgets WHERE deleted_at_utc IS NULL'))
-          .map(budgetFromRow)
-          .toList();
+  Future<List<Budget>> _budgets() async => (await db.rows(
+    'SELECT * FROM budgets WHERE deleted_at_utc IS NULL',
+  )).map(budgetFromRow).toList();
 }

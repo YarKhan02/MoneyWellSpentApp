@@ -27,28 +27,28 @@ class PeriodSelector extends StatelessWidget {
               inMutuallyExclusiveGroup: true,
               button: true,
               child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onChanged(option),
-              child: AnimatedContainer(
-                duration: _transition,
-                padding: const EdgeInsets.symmetric(vertical: Brand.sm),
-                constraints: const BoxConstraints(minHeight: 40),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: option == period ? Brand.forest : Colors.transparent,
-                  borderRadius: BorderRadius.circular(Brand.smallRadius),
-                ),
-                child: Text(
-                  periodName(option),
-                  textAlign: TextAlign.center,
-                  style: context.text.labelLarge?.copyWith(
-                    color: option == period
-                        ? Colors.white
-                        : context.scheme.onSurface,
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onChanged(option),
+                child: AnimatedContainer(
+                  duration: _transition,
+                  padding: const EdgeInsets.symmetric(vertical: Brand.sm),
+                  constraints: const BoxConstraints(minHeight: 40),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: option == period ? Brand.forest : Colors.transparent,
+                    borderRadius: BorderRadius.circular(Brand.smallRadius),
+                  ),
+                  child: Text(
+                    periodName(option),
+                    textAlign: TextAlign.center,
+                    style: context.text.labelLarge?.copyWith(
+                      color: option == period
+                          ? Colors.white
+                          : context.scheme.onSurface,
+                    ),
                   ),
                 ),
               ),
-            ),
             ),
           ),
       ],

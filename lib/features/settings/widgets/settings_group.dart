@@ -4,11 +4,7 @@ import '../../../shared/widgets/widgets.dart';
 
 /// A titled group of settings rendered as one card.
 class SettingsGroup extends StatelessWidget {
-  const SettingsGroup({
-    super.key,
-    required this.title,
-    required this.children,
-  });
+  const SettingsGroup({super.key, required this.title, required this.children});
   final String title;
   final List<Widget> children;
 

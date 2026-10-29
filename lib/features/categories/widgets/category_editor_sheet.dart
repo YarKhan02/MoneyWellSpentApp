@@ -104,9 +104,7 @@ class _CategoryEditorState extends State<_CategoryEditor> {
                   autofocus: _isNew,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _saving ? null : _save(),
-                  decoration: const InputDecoration(
-                    labelText: 'Category name',
-                  ),
+                  decoration: const InputDecoration(labelText: 'Category name'),
                 ),
                 const SizedBox(height: Brand.sm),
                 Text('Icon', style: context.text.labelLarge),
@@ -137,12 +135,7 @@ class _CategoryEditorState extends State<_CategoryEditor> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Brand.xl,
-              0,
-              Brand.xl,
-              Brand.lg,
-            ),
+            padding: const EdgeInsets.fromLTRB(Brand.xl, 0, Brand.xl, Brand.lg),
             child: Row(
               children: [
                 Expanded(
@@ -244,9 +237,7 @@ class _ChoiceTile extends StatelessWidget {
       inMutuallyExclusiveGroup: true,
       button: true,
       child: Material(
-        color: isSelected
-            ? Brand.forest.withValues(alpha: .12)
-            : t.neutralCard,
+        color: isSelected ? Brand.forest.withValues(alpha: .12) : t.neutralCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(Brand.smallRadius),
           side: BorderSide(

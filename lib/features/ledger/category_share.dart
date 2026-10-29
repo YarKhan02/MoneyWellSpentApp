@@ -23,7 +23,8 @@ class CategoryShare {
   Money get money => Money(amount, currency);
 
   /// Category name, flagged when the category has been archived.
-  String get label => '${category.name}${category.archived ? ' (archived)' : ''}';
+  String get label =>
+      '${category.name}${category.archived ? ' (archived)' : ''}';
 
   /// Every category with spending inside [range], largest first.
   /// Categories with nothing spent are omitted.

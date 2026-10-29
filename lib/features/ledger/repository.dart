@@ -102,7 +102,8 @@ class LedgerRepository {
     ),
   );
 
-  Future<void> deleteExpense(String id) => _mutate(() => _expenses.softDelete(id));
+  Future<void> deleteExpense(String id) =>
+      _mutate(() => _expenses.softDelete(id));
 
   Future<void> undoDelete(String id) => _mutate(() => _expenses.restore(id));
 

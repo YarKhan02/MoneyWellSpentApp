@@ -23,7 +23,8 @@ class BudgetWriter extends LedgerWriter {
       throw const FormatException('Enter a valid weekly or monthly cap.');
     }
     final p = await db.rows('SELECT base_currency FROM local_profile');
-    if (p.isEmpty || p.single.read<String>('base_currency') != amount.currency) {
+    if (p.isEmpty ||
+        p.single.read<String>('base_currency') != amount.currency) {
       throw const FormatException('Budget currency must match your book.');
     }
     final current = await db.rows(

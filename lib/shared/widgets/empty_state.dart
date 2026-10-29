@@ -17,7 +17,10 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppCard(
-    padding: const EdgeInsets.symmetric(vertical: Brand.xxl, horizontal: Brand.xl),
+    padding: const EdgeInsets.symmetric(
+      vertical: Brand.xxl,
+      horizontal: Brand.xl,
+    ),
     child: Column(
       children: [
         Container(

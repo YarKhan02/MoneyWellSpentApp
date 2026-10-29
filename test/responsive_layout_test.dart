@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:money_well_spent/app/shell.dart';
 import 'package:money_well_spent/features/expenses/widgets/expense_tile.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
@@ -59,6 +60,10 @@ void main() {
     useViewport(tester, viewports.first.size);
     final repository = await testRepository(tester, withProfile: false);
     await pumpApp(tester, repository, scale: 2);
+    // At this size and text scale the button is well below the fold; the
+    // point of the test is that it can be reached without the page
+    // overflowing, not that it starts on screen.
+    await scrollToInTopSheet(tester, find.text('Continue without account'));
     expect(find.text('Continue without account'), findsOneWidget);
     expectNoOverflow(tester, 'onboarding at 2x');
   });
@@ -138,14 +143,30 @@ void main() {
     await pumpApp(tester, repository);
     await openTab(tester, 'Activity');
 
+    // Jump to the very end rather than using scrollUntilVisible: the row
+    // finder already matches the tiles built on first layout, so the scroll
+    // loop would exit immediately without moving.
+    final position = tester
+        .state<ScrollableState>(
+          find
+              .descendant(
+                of: find.byType(ListView).last,
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        )
+        .position;
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pumpAndSettle();
+
     final rows = find.byType(ExpenseTile);
     expect(rows, findsWidgets);
-    await tester.scrollUntilVisible(rows.last, 300);
-    await tester.pumpAndSettle();
+    // The real claim: with the list scrolled to its end, the final row sits
+    // entirely above the docked navigation, not behind it.
     expect(
       tester.getRect(rows.last).bottom,
-      lessThanOrEqualTo(tester.view.physicalSize.height),
-      reason: 'the final row should scroll clear of the navigation',
+      lessThanOrEqualTo(tester.getRect(find.byType(AppNavigationBar)).top),
+      reason: 'the final row should clear the navigation when fully scrolled',
     );
     expectNoOverflow(tester, 'Activity scrolled to the end');
   });

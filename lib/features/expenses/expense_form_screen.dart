@@ -83,9 +83,15 @@ class _ExpenseFormState extends ConsumerState<ExpenseFormScreen> {
       if (mounted) {
         HapticFeedback.lightImpact();
         context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Expense saved on this device.')),
-        );
+        // Only confirm a brand-new entry. After an edit the detail screen
+        // underneath already shows the new figure, so a toast would add
+        // nothing — and it would land on top of that screen's own Delete
+        // button for several seconds.
+        if (!editing) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Expense saved on this device.')),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -280,9 +286,7 @@ class _CategoryPicker extends StatelessWidget {
             avatar: Icon(
               categoryIcon(c.icon),
               size: 18,
-              color: c.id == selected
-                  ? Colors.white
-                  : categoryColor(c.color),
+              color: c.id == selected ? Colors.white : categoryColor(c.color),
             ),
             label: Text(c.name),
             selected: c.id == selected,

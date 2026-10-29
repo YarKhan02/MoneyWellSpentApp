@@ -118,10 +118,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(
-                left: Brand.xs,
-                bottom: Brand.sm,
-              ),
+              padding: const EdgeInsets.only(left: Brand.xs, bottom: Brand.sm),
               child: Text(
                 entry.key,
                 style: context.text.labelMedium?.copyWith(color: Brand.muted),

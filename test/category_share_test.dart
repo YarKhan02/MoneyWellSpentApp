@@ -8,7 +8,10 @@ import 'ledger_fixtures.dart';
 void main() {
   setUpAll(tz.initializeTimeZones);
 
-  final range = CalendarRange(DateTime.utc(2026, 3, 2), DateTime.utc(2026, 3, 9));
+  final range = CalendarRange(
+    DateTime.utc(2026, 3, 2),
+    DateTime.utc(2026, 3, 9),
+  );
   DateTime inRange(int day) => DateTime.utc(2026, 3, day, 12);
 
   test('orders categories by spend, largest first', () {

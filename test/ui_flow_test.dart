@@ -36,15 +36,22 @@ Future<void> scrollTo(WidgetTester tester, Finder target, double delta) async {
   await tester.pumpAndSettle();
 }
 
-
 /// Chooses [option] from the selection sheet opened by the field labelled
 /// [fieldLabel]. The app no longer uses dropdown menus anywhere.
+///
+/// Taps the field's tappable ancestor rather than the label text: once the
+/// label floats above a filled value, its own glyphs no longer sit over the
+/// field's hit area.
 Future<void> chooseFromSheet(
   WidgetTester tester,
   String fieldLabel,
   String option,
 ) async {
-  await tester.tap(find.text(fieldLabel));
+  await tester.tap(
+    find
+        .ancestor(of: find.text(fieldLabel), matching: find.byType(InkWell))
+        .first,
+  );
   await tester.pumpAndSettle();
   await tester.tap(find.text(option).last);
   await tester.pumpAndSettle();

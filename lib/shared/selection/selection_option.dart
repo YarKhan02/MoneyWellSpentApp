@@ -20,8 +20,7 @@ class SelectionOption<T> {
   final SelectionLeading? leading;
 
   /// Text matched when the sheet shows a search field.
-  String get searchText =>
-      '$label ${description ?? ''}'.toLowerCase();
+  String get searchText => '$label ${description ?? ''}'.toLowerCase();
 }
 
 /// A small visual shown before an option's label. Kept as data rather than a

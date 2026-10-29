@@ -9,12 +9,7 @@ Profile testProfile({
   String timezone = 'UTC',
   int weekStart = DateTime.monday,
   bool budgetSignals = true,
-}) => Profile(
-  currency,
-  timezone,
-  weekStart,
-  budgetSignals: budgetSignals,
-);
+}) => Profile(currency, timezone, weekStart, budgetSignals: budgetSignals);
 
 Category testCategory(
   String id,

@@ -50,21 +50,17 @@ class CategoryBreakdownChart extends StatelessWidget {
             ),
             const SizedBox(width: Brand.md),
             Expanded(
-              child: Text(
-                share.category.name,
-                style: context.text.titleMedium,
-              ),
+              child: Text(share.category.name, style: context.text.titleMedium),
             ),
             Text('100%', style: context.text.titleMedium),
           ],
         ),
         const SizedBox(height: Brand.md),
         ProgressBar(
-          fraction: 1,
+          percent: 100,
           color: categoryColor(share.category.color),
           track: context.tokens.track,
           label: '${share.category.name} share',
-          value: '100%',
           height: 10,
         ),
         const SizedBox(height: Brand.sm),

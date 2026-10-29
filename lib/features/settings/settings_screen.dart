@@ -22,7 +22,11 @@ import 'widgets/switch_row.dart';
 /// it shows only the fields needed to open a book, and the data section is
 /// hidden because there is nothing to export or erase yet.
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key, required this.data, this.onboarding = false});
+  const SettingsScreen({
+    super.key,
+    required this.data,
+    this.onboarding = false,
+  });
   final LedgerSnapshot data;
   final bool onboarding;
 
@@ -318,9 +322,7 @@ class _SaveButton extends StatelessWidget {
               Expanded(
                 child: Text(
                   'You have unsaved changes.',
-                  style: context.text.bodyMedium?.copyWith(
-                    color: Brand.muted,
-                  ),
+                  style: context.text.bodyMedium?.copyWith(color: Brand.muted),
                 ),
               ),
             ],

@@ -76,7 +76,7 @@ class _BudgetFormState extends ConsumerState<BudgetFormScreen> {
     setState(() => busy = true);
     try {
       await ref.read(repositoryProvider).removeBudget(budget!.id);
-      if (context.mounted) context.pop();
+      if (mounted) context.pop();
     } catch (e) {
       if (mounted) _fail(e);
     }

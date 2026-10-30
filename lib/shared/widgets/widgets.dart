@@ -1,4 +1,6 @@
 /// Barrel for the shared widget library, so screens import one path.
+library;
+
 export 'amount_text.dart';
 export 'app_card.dart';
 export 'app_header.dart';

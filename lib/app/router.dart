@@ -17,8 +17,9 @@ import 'shell.dart';
 /// The four shell branches keep their own navigation stacks, so switching
 /// tabs never loses where you were. Everything outside the shell — forms,
 /// detail, settings — is pushed on top of it.
-GoRouter buildRouter({List<NavigatorObserver> observers = const []}) =>
-    GoRouter(
+GoRouter buildRouter({
+  List<NavigatorObserver> observers = const [],
+}) => GoRouter(
   observers: observers,
   initialLocation: '/home',
   routes: [

@@ -143,9 +143,9 @@ void main() {
     await pumpApp(tester, repository);
     await openTab(tester, 'Activity');
 
-    // Jump to the very end rather than using scrollUntilVisible: the row
-    // finder already matches the tiles built on first layout, so the scroll
-    // loop would exit immediately without moving.
+    // Jump to the very end. A lazy ListView extends its scroll range as new
+    // tiles build, so one jump clamps to a stale maxScrollExtent and stops
+    // short; jump until the range stops growing.
     final position = tester
         .state<ScrollableState>(
           find
@@ -156,8 +156,10 @@ void main() {
               .first,
         )
         .position;
-    position.jumpTo(position.maxScrollExtent);
-    await tester.pumpAndSettle();
+    for (var i = 0; i < 10 && position.pixels < position.maxScrollExtent; i++) {
+      position.jumpTo(position.maxScrollExtent);
+      await tester.pumpAndSettle();
+    }
 
     final rows = find.byType(ExpenseTile);
     expect(rows, findsWidgets);
